@@ -53,7 +53,6 @@ nodeGroups:
     volumeSize: 50
     tags:
       Component : cicd
-    labels: { role: p2p-dev-nodegroup }
     kubeletExtraConfig:
         kubeReserved:
             cpu: "200m"
