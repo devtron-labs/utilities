@@ -4,27 +4,22 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.19"
+  version: "1.21"
 
 vpc:
   id: "vpc-xxxxxxx"
-  cidr: "10.0.0.0/16"
   subnets:
     private:
       ap-south-1a:
           id: "subnet-xxxxxxx"
-          cidr: "0.0.0.0/24"
       ap-south-1b:
           id: "subnet-xxxxxxx"
-          cidr: "0.0.0.0/24"
 
     public:
       public-ap-south-1a:
           id: "subnet-xxxxxxx"
-          cidr: "0.0.0.0/25"
       public-ap-south-1b:
           id: "subnet-xxxxxxx"
-          cidr: "0.0.0.0/25"
 
 nodeGroups:
   - name: devtron-nodes
