@@ -1,5 +1,12 @@
 # Creating a Cluster for Devtron Setup
 
+## Prerequisites
+
+- Make sure that the bastion/local machine has appropriate permissions, we recommend using a role/user with Admin permissions, but if you need minimum permissions required to create the cluster, you can refer https://eksctl.io/usage/minimum-iam-policies/
+- Install eksctl Refer https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html
+- Create a customPolicy `devtron-cluster-IAM-policy` ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy )
+
+
 ## Download the eksctl configs template and Modify
 
 ```
@@ -14,11 +21,7 @@ Edit the fields prefilled with sample data
 - nodeGroups.ssh.publicKeyName for both the nodegroups
 - Replace AWS account ID in nodeGroups.iam.attachPolicyARNs ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy )
 
-## Prerequisites
-
-- Make sure that the bastion/local machine has appropriate permissions, we recommend using a role/user with Admin permissions, but if you need minimum permissions required to create the cluster, you can refer https://eksctl.io/usage/minimum-iam-policies/
-- Install eksctl Refer https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html
-- Create a customPolicy `devtron-cluster-IAM-policy` ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy )
+The eksctl template shared in the step above is a recommended configuration for devtron setup for Production usage, you can do any other changes according to your customizations if required or get in touch with Devtron Team on Discord https://discord.devtron.ai
 
 ## Creating Cluster
 
