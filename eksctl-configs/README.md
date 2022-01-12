@@ -39,7 +39,7 @@ cat .kube/config
 
 ### Manually creating Kubeconfig for a Cluster
 ```
-eksctl utils write-kubeconfig --cluster=<cluster-name> --region ap-south-1
+eksctl utils write-kubeconfig --cluster <cluster-name> --region <region>
 ```
 
 
