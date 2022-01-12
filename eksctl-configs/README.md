@@ -10,7 +10,7 @@ Edit the fields prefilled with sample data
 
 - vpc.id
 - vpc.subnets.private and vpc.subnets.public
-- vpc.clusterEndpoints.publicAccessCIDRs
+- vpc.clusterEndpoints.publicAccessCIDRs (Include the public IP addresses CIDR that you wish to whitelist for Kubernetes apiserver access, vpc cidr is already whitelisted if vpc.clusterEndpoints.privateAccess is set true) 
 - nodeGroups.ssh.publicKeyName for both the nodegroups
 - Replace AWS account ID in nodeGroups.iam.attachPolicyARNs ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy )
 
