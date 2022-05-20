@@ -162,7 +162,7 @@ fi
 echo "##############################################"
 
 echo "-----------------Chart version change---------"
-wget https://raw.githubusercontent.com/gunish-dt/devtronNew/main/charts/devtron/Chart.yaml -O version.yaml
+wget https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/Chart.yaml -O version.yaml
 CHART_DEV_RELEASE=$(sed -nre '13s/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p' version.yaml)
 echo $CHART_DEV_RELEASE
 
@@ -175,7 +175,7 @@ sed -i "s/$CHART_DEV_RELEASE/$CHART_NEXT_RELEASE/" $VERSION_FILE_CHART
 rm version.yaml
 
 #------------------------appVersion change in Chart.yaml-----------------------------------------------
-wget https://raw.githubusercontent.com/gunish-dt/devtronNew/main/manifests/version.txt -O version.txt
+wget https://raw.githubusercontent.com/devtron-labs/devtron/main/manifests/version.txt -O version.txt
 VERSION_OLD=`cat version.txt`
 VERSION_NEW=$(echo "$VERSION_OLD" | tr -dc '[. [:digit:]]') 
 echo $VERSION_NEW
