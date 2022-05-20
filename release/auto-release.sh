@@ -162,7 +162,7 @@ fi
 echo "##############################################"
 
 echo "-----------------Chart version change---------"
-wget https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/Chart.yaml -O version.yaml
+wget https://raw.githubusercontent.com/$REPO/$GIT_BRANCH/charts/devtron/Chart.yaml -O version.yaml
 CHART_DEV_RELEASE=$(sed -nre '13s/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p' version.yaml)
 echo $CHART_DEV_RELEASE
 
@@ -175,7 +175,7 @@ sed -i "s/$CHART_DEV_RELEASE/$CHART_NEXT_RELEASE/" $VERSION_FILE_CHART
 rm version.yaml
 
 #------------------------appVersion change in Chart.yaml-----------------------------------------------
-wget https://raw.githubusercontent.com/devtron-labs/devtron/main/manifests/version.txt -O version.txt
+wget https://raw.githubusercontent.com/$REPO/$GIT_BRANCH/manifests/version.txt -O version.txt
 VERSION_OLD=`cat version.txt`
 VERSION_NEW=$(echo "$VERSION_OLD" | tr -dc '[. [:digit:]]') 
 echo $VERSION_NEW
@@ -185,8 +185,8 @@ sed -i "s/appVersion.*/appVersion: $VERSION_FINAL/" $VERSION_FILE_CHART
 rm version.txt
 #------------------------------------------------------------------------------------
 git commit -am "Updated latest image of $APP_DOCKER_REPO in installer"
-git pull origin "$RELEASE_BRANCH"
-git push https://$GIT_USERNAME:$GITHUB_TOKENS@$GIT_REPO "$RELEASE_BRANCH"
+git pull origin "$RELEASE_BRANCH" -v
+git push https://$GIT_USERNAME:$GITHUB_TOKENS@$GIT_REPO "$RELEASE_BRANCH" -v
 
 PR_RESPONSE=$(../../../bin/gh pr create --title "RELEASE: PR for $NEXT_RELEASE_VERSION" --body "Updates in $APP_DOCKER_REPO micro-service and charts" --base $GIT_BRANCH --head $RELEASE_BRANCH --repo $REPO)
 echo "FINAL PR RESPONSE: $PR_RESPONSE"
