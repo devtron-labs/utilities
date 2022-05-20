@@ -38,10 +38,9 @@ bin/gh auth login --with-token < tokens.txt
 echo "================================authentication==============="
 bin/gh repo clone "$REPO"
 echo "========================================repo clone command above==="
-cd devtronNew
+cd devtron
 git checkout "$GIT_BRANCH"
 git checkout -b "$RELEASE_BRANCH"
-git pull origin "$RELEASE_BRANCH"
 echo "============ ls -la========"
 #ls -la
 #Updating Image in the yaml for devtron
@@ -186,7 +185,8 @@ sed -i "s/appVersion.*/appVersion: $VERSION_FINAL/" $VERSION_FILE_CHART
 rm version.txt
 #------------------------------------------------------------------------------------
 git commit -am "Updated latest image of $APP_DOCKER_REPO in installer"
-git push -f https://$GIT_USERNAME:$GITHUB_TOKENS@$GIT_REPO --all
+git pull origin "$RELEASE_BRANCH"
+git push https://$GIT_USERNAME:$GITHUB_TOKENS@$GIT_REPO "$RELEASE_BRANCH"
 
 PR_RESPONSE=$(../../../bin/gh pr create --title "RELEASE: PR for $NEXT_RELEASE_VERSION" --body "Updates in $APP_DOCKER_REPO micro-service and charts" --base $GIT_BRANCH --head $RELEASE_BRANCH --repo $REPO)
 echo "FINAL PR RESPONSE: $PR_RESPONSE"
