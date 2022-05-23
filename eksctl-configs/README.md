@@ -30,16 +30,24 @@ The eksctl template shared in the step above is a recommended configuration for 
 eksctl create cluster -f eksctl-devtron-prod-configs.yaml
 ```
 
-### Generating and extracting Kubeconfig
+### Manually creating Kubeconfig for a Cluster
 
 Most versions of eksctl automatically generate the kubeconfig if the cluster creation completes without any errors, you can copy the kubeconfig using the following command
+
 ```
 cat .kube/config
 ```
 
-### Manually creating Kubeconfig for a Cluster
+If no kubeconfig is generated, you can generate it using the command below.
+
 ```
 eksctl utils write-kubeconfig --cluster <cluster-name> --region <region>
 ```
 
+### Generating token based cluster access
 
+Ensure that you have kubeconfig already set and are able to access the cluster. Generate the cluster-admin token based kube-config. Please ensure that you have kubectl and jq installed on the bastion that you’re running the command on.
+
+```
+curl -O https://raw.githubusercontent.com/devtron-labs/utilities/main/kubeconfig-exporter/kubernetes_kubeconfig_sa.sh && bash kubernetes_kubeconfig_sa.sh cd-user devtroncd https://raw.githubusercontent.com/devtron-labs/utilities/main/kubeconfig-exporter/clusterrole.yaml
+```
