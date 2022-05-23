@@ -44,7 +44,7 @@ If no kubeconfig is generated, you can generate it using the command below.
 eksctl utils write-kubeconfig --cluster <cluster-name> --region <region>
 ```
 
-### Generating token based cluster access
+### Generating token based Kubeconfig
 
 Ensure that you have kubeconfig already set and are able to access the cluster. Generate the cluster-admin token based kube-config. Please ensure that you have kubectl and jq installed on the bastion that you’re running the command on.
 
