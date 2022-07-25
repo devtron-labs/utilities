@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: argocd-upgrade-devtron-patch-1
+  namespace: devtroncd
+spec:
+  template:
+    spec:
+      serviceAccountName: devtron
+      containers:
+      - name: devtron-argocd-2-4-0-patch-job
+        image: quay.io/devtron/devtron-utils:argocd-2-4-0-patch
+        env:
+        - name: PATCH_BATCH_LIMIT
+          value: "500"
+        - name: PATCH_INTERVAL
+          value: "30"
+        - name: FIRST_APP_ID
+          value: "0"
+        - name: LAST_APP_ID
+          value: "0"
+        envFrom:
+          - secretRef:
+              name: orchestrator-secrets-3
+          - configMapRef:
+              name: orchestrator-cm-3
+      restartPolicy: OnFailure
+  backoffLimit: 1
+  activeDeadlineSeconds: 43200
