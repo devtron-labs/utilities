@@ -21,9 +21,9 @@ spec:
           value: "0"
         envFrom:
           - secretRef:
-              name: orchestrator-secrets-3
+              name: devtron-secret
           - configMapRef:
-              name: orchestrator-cm-3
+              name: devtron-cm
       restartPolicy: OnFailure
   backoffLimit: 1
   activeDeadlineSeconds: 43200
