@@ -18,7 +18,6 @@ CLUSTER_ROLE_FILE=$3
 create_cluster_role_binding(){
    echo -n "Creating cluster role binding from ${CLUSTER_ROLE_FILE}" 
    kubectl apply -f ${CLUSTER_ROLE_FILE}
-
 }
 
 create_target_folder() {
@@ -56,8 +55,6 @@ get_user_token_from_secret() {
     USER_TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
     printf "done"
 }
-
-
 
 set_kube_config_values() {
     context=$(kubectl config current-context)
