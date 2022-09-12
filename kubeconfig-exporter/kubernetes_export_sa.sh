@@ -120,6 +120,6 @@ echo "KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods"
 echo "you should not have any permissions by default - you have just created the authentication part"
 echo "You will need to create RBAC permissions"
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-cat ${KUBECFG_FILE_NAME}
+cat ${KUBECFG_FILE_NAME} | grep token
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods
