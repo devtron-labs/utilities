@@ -31,6 +31,12 @@ create_service_account() {
     kubectl create sa "${SERVICE_ACCOUNT_NAME}" --namespace "${NAMESPACE}"
 }
 
+create_serviceaccount_token(){
+    echo -e "\\nCreating service account token in ${NAMESPACE} namespace: ${SERVICE_ACCOUNT_NAME}\n"
+    echo -e "Token:"
+    kubectl create token "${SERVICE_ACCOUNT_NAME}" -n "${NAMESPACE}"
+}
+
 get_secret_name_from_service_account() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
     SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .secrets[].name)
@@ -89,19 +95,31 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-create_target_folder
-create_cluster_role_binding
-create_service_account
-get_secret_name_from_service_account
-extract_ca_crt_from_secret
-get_user_token_from_secret
-set_kube_config_values
+VERSION=$(kubectl version -o json | jq .serverVersion.minor | sed 's/+//' | cut -d '"' -f 2 )
+VERSION=$(expr $VERSION)
+
+if [[ $VERSION -ge 24 ]]
+then
+ create_target_folder
+ create_cluster_role_binding
+ create_service_account
+ create_serviceaccount_token
+ set_kube_config_values
+else
+ create_target_folder
+ create_cluster_role_binding
+ create_service_account
+ get_secret_name_from_service_account
+ extract_ca_crt_from_secret
+ get_user_token_from_secret
+ set_kube_config_values
+fi 
 
 echo -e "\\nAll done! Test with:"
 echo "KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods"
 echo "you should not have any permissions by default - you have just created the authentication part"
 echo "You will need to create RBAC permissions"
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-cat ${KUBECFG_FILE_NAME} | grep token:
+cat ${KUBECFG_FILE_NAME}
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods
