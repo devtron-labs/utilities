@@ -101,14 +101,12 @@ VERSION=$(expr $VERSION)
 
 if [[ $VERSION -ge 24 ]]
 then
- echo "this is if part"
  create_target_folder
  create_cluster_role_binding
  create_service_account
  create_serviceaccount_token
  set_kube_config_values
 else
- echo "this is else part"
  create_target_folder
  create_cluster_role_binding
  create_service_account
