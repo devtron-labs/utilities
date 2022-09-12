@@ -18,6 +18,7 @@ CLUSTER_ROLE_FILE=$3
 create_cluster_role_binding(){
    echo -n "Creating cluster role binding from ${CLUSTER_ROLE_FILE}" 
    kubectl apply -f ${CLUSTER_ROLE_FILE}
+
 }
 
 create_target_folder() {
@@ -29,6 +30,12 @@ create_target_folder() {
 create_service_account() {
     echo -e "\\nCreating a service account in ${NAMESPACE} namespace: ${SERVICE_ACCOUNT_NAME}"
     kubectl create sa "${SERVICE_ACCOUNT_NAME}" --namespace "${NAMESPACE}"
+}
+
+create_serviceaccount_token(){
+    echo -e "\\nCreating service account token in ${NAMESPACE} namespace: ${SERVICE_ACCOUNT_NAME}\n"
+    echo -e "Token:"
+    kubectl create token "${SERVICE_ACCOUNT_NAME}" -n "${NAMESPACE}"
 }
 
 get_secret_name_from_service_account() {
@@ -49,6 +56,8 @@ get_user_token_from_secret() {
     USER_TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
     printf "done"
 }
+
+
 
 set_kube_config_values() {
     context=$(kubectl config current-context)
@@ -89,19 +98,34 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-create_target_folder
-create_cluster_role_binding
-create_service_account
-get_secret_name_from_service_account
-extract_ca_crt_from_secret
-get_user_token_from_secret
-set_kube_config_values
+VERSION=$(kubectl version -o json | jq .serverVersion.minor | sed 's/+//' | cut -d '"' -f 2 )
+VERSION=$(expr $VERSION)
+
+
+if [[ $VERSION -ge 24 ]]
+then
+ echo "this is if part"
+ create_target_folder
+ create_cluster_role_binding
+ create_service_account
+ create_serviceaccount_token
+ set_kube_config_values
+else
+ echo "this is else part"
+ create_target_folder
+ create_cluster_role_binding
+ create_service_account
+ get_secret_name_from_service_account
+ extract_ca_crt_from_secret
+ get_user_token_from_secret
+ set_kube_config_values
+fi 
 
 echo -e "\\nAll done! Test with:"
 echo "KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods"
 echo "you should not have any permissions by default - you have just created the authentication part"
 echo "You will need to create RBAC permissions"
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-cat ${KUBECFG_FILE_NAME} | grep token:
+cat ${KUBECFG_FILE_NAME}
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods
