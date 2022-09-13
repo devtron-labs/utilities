@@ -25,5 +25,7 @@ kubectl create ns devtroncd
 
 helm repo add devtron https://helm.devtron.ai
 
-helm install devtron devtron/devtron-operator --create-namespace --namespace devtroncd  --set installer.modules={cicd} --set components.devtron.service.type=ClusterIP --set components.devtron.ingress.enabled=true --set components.devtron.ingress.className=public --set components.devtron.ingress.host="devtron.example.com"
+helm install devtron devtron/devtron-operator --create-namespace --namespace devtroncd  --set installer.modules={cicd} \
+--set components.devtron.service.type=ClusterIP --set components.devtron.ingress.enabled=true \
+--set components.devtron.ingress.className=public --set components.devtron.ingress.host="devtron.example.com"
 ```
