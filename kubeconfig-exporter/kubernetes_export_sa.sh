@@ -122,9 +122,9 @@ echo "KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods"
 echo "you should not have any permissions by default - you have just created the authentication part"
 echo "You will need to create RBAC permissions"
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "    SERVER URL := ${SERVER_URL} "
+echo "SERVER URL := ${SERVER_URL} "
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "    BEARER TOKEN := ${TOKEN} "
+echo "BEARER TOKEN := ${TOKEN} "
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 
 KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods
