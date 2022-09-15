@@ -4,7 +4,7 @@
 
 - Make sure that the bastion/local machine has appropriate permissions, we recommend using a role/user with Admin permissions, but if you need minimum permissions required to create the cluster, you can refer https://eksctl.io/usage/minimum-iam-policies/
 - Install eksctl Refer https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html
-- Create 2 s3 buckets for storing cache and logs in the same region where you intend to create Devtron cluster ( Names can be something like s3://organization-devtron-ci-caching, s3://organization-devtron-ci-logs )
+- Create 2 s3 buckets for storing cache and logs in the same region where you intend to create Devtron cluster ( Names can be something like s3://organization-devtron-ci-caching (versioning enabled), s3://organization-devtron-ci-logs )
 - Create a customPolicy `devtron-cluster-IAM-policy` ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy ) and give S3FullAccess to the s3 buckets created in previous step and `ElasticLoadBalancingFullAccess` (Devtron creates a Loadbalancer for it's service)
 
 
