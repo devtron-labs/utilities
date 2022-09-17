@@ -14,6 +14,8 @@ NAMESPACE="$2"
 KUBECFG_FILE_NAME="tmp/k8s-${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-conf-${RANDOM}.conf"
 TARGET_FOLDER="tmp/"
 CLUSTER_ROLE_FILE=$3
+SERVER_URL=""
+TOKEN=""
 
 create_cluster_role_binding(){
    echo -n "Creating cluster role binding from ${CLUSTER_ROLE_FILE}" 
@@ -31,6 +33,12 @@ create_service_account() {
     kubectl create sa "${SERVICE_ACCOUNT_NAME}" --namespace "${NAMESPACE}"
 }
 
+create_serviceaccount_token(){
+    echo -e "\\nCreating service account token in ${NAMESPACE} namespace: ${SERVICE_ACCOUNT_NAME}\n"
+
+    TOKEN=$(kubectl create token "${SERVICE_ACCOUNT_NAME}" -n "${NAMESPACE}")
+}
+
 get_secret_name_from_service_account() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
     SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .secrets[].name)
@@ -46,7 +54,7 @@ extract_ca_crt_from_secret() {
 
 get_user_token_from_secret() {
         echo -e -n "\\nGetting user token from secret..."
-    USER_TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
+    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
     printf "done"
 }
 
@@ -57,16 +65,16 @@ set_kube_config_values() {
     CLUSTER_NAME=$(kubectl config get-contexts "$context" | awk '{print $3}' | tail -n 1)
     echo "Cluster name: ${CLUSTER_NAME}"
 
-    ENDPOINT=$(kubectl config view \
+   SERVER_URL=$(kubectl config view \
     -o jsonpath="{.clusters[?(@.name == \"${CLUSTER_NAME}\")].cluster.server}")
-    echo "Endpoint: ${ENDPOINT}"
+
 
     # Set up the config
     echo -e "\\nPreparing k8s-${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-conf"
     echo -n "Setting a cluster entry in kubeconfig..."
     kubectl config set-cluster "${CLUSTER_NAME}" \
     --kubeconfig="${KUBECFG_FILE_NAME}" \
-    --server="${ENDPOINT}" \
+    --server="${SERVER_URL}" \
     --certificate-authority="${TARGET_FOLDER}/ca.crt" \
     --embed-certs=true
 
@@ -74,7 +82,7 @@ set_kube_config_values() {
     kubectl config set-credentials \
     "${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-${CLUSTER_NAME}" \
     --kubeconfig="${KUBECFG_FILE_NAME}" \
-    --token="${USER_TOKEN}"
+    --token="${TOKEN}"
 
     echo -n "Setting a context entry in kubeconfig..."
         kubectl config set-context \
@@ -89,19 +97,34 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-create_target_folder
-create_cluster_role_binding
-create_service_account
-get_secret_name_from_service_account
-extract_ca_crt_from_secret
-get_user_token_from_secret
-set_kube_config_values
+VERSION=$(kubectl version -o json | jq .serverVersion.minor | sed 's/+//' | cut -d '"' -f 2 )
+VERSION=$(expr $VERSION)
+
+if [[ $VERSION -ge 24 ]]
+then
+ create_target_folder
+ create_cluster_role_binding
+ create_service_account
+ create_serviceaccount_token
+ set_kube_config_values
+else
+ create_target_folder
+ create_cluster_role_binding
+ create_service_account
+ get_secret_name_from_service_account
+ extract_ca_crt_from_secret
+ get_user_token_from_secret
+ set_kube_config_values
+fi 
 
 echo -e "\\nAll done! Test with:"
 echo "KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods"
 echo "you should not have any permissions by default - you have just created the authentication part"
 echo "You will need to create RBAC permissions"
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-cat ${KUBECFG_FILE_NAME} | grep token:
+echo "SERVER URL := ${SERVER_URL} "
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+echo "BEARER TOKEN := ${TOKEN} "
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+
 KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods
