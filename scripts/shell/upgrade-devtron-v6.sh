@@ -3,7 +3,7 @@ if [ $(echo $?) -eq 1 ]
 then
 echo "Found Devtron without CICD - Upgrading to latest version"
 helm repo update
-helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron/charts/main/charts/devtron/values.yaml --reuse-values
+helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values
 else
 echo "Found Devtron with CICD - Upgrading to latest version. Please ignore any errors you observe during upgrade"
 sleep 3
@@ -122,10 +122,10 @@ helm repo update
 if [ $provider=="MINIO" ]
 then
 echo "Found Blob Storage Provider as Minio"
-helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron/charts/main/charts/devtron/values.yaml --reuse-values --set configs.BLOB_STORAGE_PROVIDER="MINIO"  --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set external-secrets.enabled=true --set notifier.enabled=true
+helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set configs.BLOB_STORAGE_PROVIDER="MINIO"  --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set external-secrets.enabled=true --set notifier.enabled=true
 else
 echo "Blob Storage Provider - $provider"
-helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron/charts/main/charts/devtron/values.yaml --reuse-values --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set notifier.enabled=true --set
+helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set notifier.enabled=true --set
 external-secrets.enabled=true --set notifier.enabled=true
 fi
 fi
