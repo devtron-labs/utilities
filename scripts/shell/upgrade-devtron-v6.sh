@@ -1,9 +1,9 @@
-kubectl get installer -n devtroncd
-helm repo update
+kubectl get deploy inception -n devtroncd
 if [ $(echo $?) -eq 1 ]
 then
 echo "Found Devtron without CICD - Upgrading to latest version"
-helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron/charts/main/charts/devtron/values.yaml --resuse-values
+helm repo update
+helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron/charts/main/charts/devtron/values.yaml --reuse-values
 else
 echo "Found Devtron with CICD - Upgrading to latest version. Please ignore any errors you observe during upgrade"
 sleep 3
@@ -118,6 +118,7 @@ kubectl annotate clusterrolebinding devtron-grafana-clusterrolebinding "meta.hel
 kubectl delete sts argocd-application-controller -n devtroncd
 kubectl delete deploy argocd-redis argocd-repo-server argocd-server -n devtroncd
 provider=$(kubectl -n devtroncd get cm devtron-cm -o jsonpath='{.data.BLOB_STORAGE_PROVIDER}')
+helm repo update
 if [ $provider=="MINIO" ]
 then
 echo "Found Blob Storage Provider as Minio"
