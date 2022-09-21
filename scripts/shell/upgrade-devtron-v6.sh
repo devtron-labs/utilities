@@ -2,6 +2,9 @@ kubectl get deploy inception -n devtroncd
 if [ $(echo $?) -eq 1 ]
 then
 echo "Found Devtron without CICD - Upgrading to latest version"
+kubectl create ns argo
+kubectl create ns devtron-ci
+kubectl create ns devtron-cd
 helm repo update
 helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values
 else
