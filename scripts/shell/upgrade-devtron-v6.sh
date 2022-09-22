@@ -125,7 +125,9 @@ helm repo update
 if [ $provider=="MINIO" ]
 then
 echo "Found Blob Storage Provider as Minio"
-helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set configs.BLOB_STORAGE_PROVIDER="MINIO"  --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set notifier.enabled=true
+minioAccessKey=$(kubectl -n devtroncd get secret devtron-minio -o jsonpath='{.data.accesskey}' | base64 -d)
+minioSecretKey=$(kubectl -n devtroncd get secret devtron-minio -o jsonpath='{.data.secretkey}' | base64 -d)
+helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/dheeth/charts/main/charts/devtron/values.yaml --reuse-values --set configs.BLOB_STORAGE_PROVIDER="S3" --set configs.BLOB_STORAGE_S3_ENDPOINT="http://devtron-minio.devtroncd:9000" --set-string configs.BLOB_STORAGE_S3_ENDPOINT_INSECURE="true" --set secrets.BLOB_STORAGE_S3_ACCESS_KEY=$minioAccessKey --set secrets.BLOB_STORAGE_S3_SECRET_KEY=$minioSecretKey --set configs.DEFAULT_BUILD_LOGS_BUCKET="devtron-ci-log" --set configs.DEFAULT_CACHE_BUCKET="devtron-ci-cache" --set configs.DEFAULT_CACHE_BUCKET_REGION=us-west-2 --set configs.DEFAULT_CD_LOGS_BUCKET_REGION=us-west-2 --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set external-secrets.enabled=true --set notifier.enabled=true
 else
 echo "Blob Storage Provider - $provider"
 helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set notifier.enabled=true
