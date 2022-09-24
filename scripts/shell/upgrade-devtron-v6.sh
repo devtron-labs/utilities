@@ -89,35 +89,35 @@ kubectl -n devtron-cd annotate secret --all "meta.helm.sh/release-name=$RELEASE_
 kubectl -n devtron-ci label secret --all "app.kubernetes.io/managed-by=Helm" --overwrite
 kubectl -n devtron-ci annotate secret --all "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label ns argo "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate ns argo "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate ns argo "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label ns devtron-ci "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate ns devtron-ci "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate ns devtron-ci "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label ns devtron-cd "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate ns devtron-cd "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate ns devtron-cd "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label crd workflows.argoproj.io "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate crd workflows.argoproj.io "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate crd workflows.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label crd workflowtemplates.argoproj.io "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate crd workflowtemplates.argoproj.io "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate crd workflowtemplates.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrole argo-aggregate-to-admin "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrole argo-aggregate-to-admin "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrole argo-aggregate-to-admin "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrole argo-aggregate-to-edit "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrole argo-aggregate-to-edit "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrole argo-aggregate-to-edit "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrole argo-binding "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrole argo-binding "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrole argo-binding "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrolebinding argo-aggregate-to-admin "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrolebinding argo-aggregate-to-admin "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrolebinding argo-aggregate-to-admin "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrolebinding argo-aggregate-to-edit "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrolebinding argo-aggregate-to-edit "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrolebinding argo-aggregate-to-edit "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrolebinding argo-binding "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrolebinding argo-binding "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrolebinding argo-binding "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl -n devtroncd label PodSecurityPolicy --all "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl -n devtroncd annotate --all PodSecurityPolicy "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl -n devtroncd annotate --all PodSecurityPolicy "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl -n devtroncd label pvc --all "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl -n devtroncd annotate pvc --all "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl -n devtroncd annotate pvc --all "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrole devtron-grafana-clusterrole "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrole devtron-grafana-clusterrole "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrole devtron-grafana-clusterrole "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrolebinding devtron-grafana-clusterrolebinding "app.kubernetes.io/managed-by=Helm" --overwrite
-kubectl annotate clusterrolebinding devtron-grafana-clusterrolebinding "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl annotate clusterrolebinding devtron-grafana-clusterrolebinding "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl delete sts argocd-application-controller -n devtroncd
 kubectl delete deploy argocd-redis argocd-repo-server argocd-server -n devtroncd
 provider=$(kubectl -n devtroncd get cm devtron-cm -o jsonpath='{.data.BLOB_STORAGE_PROVIDER}')
