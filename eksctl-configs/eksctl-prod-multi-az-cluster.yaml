@@ -34,7 +34,7 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-        - arn:aws:iam::805965534098:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::XXXXXXXX:policy/devtron-cluster-IAM-policy
     ssh:
       allow: true
       publicKeyName: "devops"
@@ -82,7 +82,7 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-        - arn:aws:iam::805965534098:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::XXXXXXXX:policy/devtron-cluster-IAM-policy
     ssh:
       allow: true
       publicKeyName: "devops"
@@ -130,7 +130,7 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-        - arn:aws:iam::805965534098:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::XXXXXXXX:policy/devtron-cluster-IAM-policy
     ssh:
       allow: true
       publicKeyName: "devops"
