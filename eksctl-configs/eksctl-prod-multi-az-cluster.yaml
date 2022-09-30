@@ -1,0 +1,157 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: prod-1
+  region: us-west-2
+  version: "1.22"
+
+vpc:
+  cidr: 172.31.0.0/16
+  nat:
+    gateway: "Single" 
+
+nodeGroups:
+  - name: nodes-azA
+    privateNetworking: true
+    availabilityZones:
+      - us-west-2a
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.5
+      instanceTypes: ["c5n.xlarge", "r5a.xlarge", "r4.xlarge", "c5d.xlarge"]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+      spotAllocationStrategy: "lowest-price"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::805965534098:policy/devtron-cluster-IAM-policy
+    ssh:
+      allow: true
+      publicKeyName: "devops"
+    volumeSize: 50
+    tags:
+      Component : prod
+    kubeletExtraConfig:
+        kubeReserved:
+            cpu: "100m"
+            memory: "100Mi"
+            ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        cpuManagerPolicy: "static"
+        systemReserved:
+            cpu: "100m"
+            memory: "100Mi"
+            ephemeral-storage: "1Gi"
+        evictionHard:
+            memory.available:  "200Mi"
+            nodefs.available: "10%"
+        featureGates:
+            DynamicKubeletConfig: true
+            RotateKubeletServerCertificate: true
+            CPUManager: true
+
+  - name: nodes-azB
+    privateNetworking: true
+    availabilityZones:
+      - us-west-2b
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.5
+      instanceTypes: ["c5n.xlarge", "r5a.xlarge", "r4.xlarge", "c5d.xlarge"]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+      spotAllocationStrategy: "lowest-price"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::805965534098:policy/devtron-cluster-IAM-policy
+    ssh:
+      allow: true
+      publicKeyName: "devops"
+    volumeSize: 50
+    tags:
+      Component : prod
+    kubeletExtraConfig:
+        kubeReserved:
+            cpu: "100m"
+            memory: "100Mi"
+            ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        cpuManagerPolicy: "static"
+        systemReserved:
+            cpu: "100m"
+            memory: "100Mi"
+            ephemeral-storage: "1Gi"
+        evictionHard:
+            memory.available:  "200Mi"
+            nodefs.available: "10%"
+        featureGates:
+            DynamicKubeletConfig: true
+            RotateKubeletServerCertificate: true
+            CPUManager: true
+
+  - name: nodes-azC
+    privateNetworking: true
+    availabilityZones:
+      - us-west-2c
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.5
+      instanceTypes: ["c5n.xlarge", "r5a.xlarge", "r4.xlarge", "c5d.xlarge"]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+      spotAllocationStrategy: "lowest-price"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::805965534098:policy/devtron-cluster-IAM-policy
+    ssh:
+      allow: true
+      publicKeyName: "devops"
+    volumeSize: 50
+    tags:
+      Component : prod
+    kubeletExtraConfig:
+        kubeReserved:
+            cpu: "100m"
+            memory: "100Mi"
+            ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        cpuManagerPolicy: "static"
+        systemReserved:
+            cpu: "100m"
+            memory: "100Mi"
+            ephemeral-storage: "1Gi"
+        evictionHard:
+            memory.available:  "200Mi"
+            nodefs.available: "10%"
+        featureGates:
+            DynamicKubeletConfig: true
+            RotateKubeletServerCertificate: true
+            CPUManager: true
