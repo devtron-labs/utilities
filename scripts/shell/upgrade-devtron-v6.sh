@@ -118,6 +118,14 @@ kubectl label clusterrole devtron-grafana-clusterrole "app.kubernetes.io/managed
 kubectl annotate clusterrole devtron-grafana-clusterrole "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl label clusterrolebinding devtron-grafana-clusterrolebinding "app.kubernetes.io/managed-by=Helm" --overwrite
 kubectl annotate clusterrolebinding devtron-grafana-clusterrolebinding "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl label crd applications.argoproj.io "app.kubernetes.io/managed-by=Helm" --overwrite
+kubectl annotate crd applications.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl label crd applicationsets.argoproj.io "app.kubernetes.io/managed-by=Helm" --overwrite
+kubectl annotate crd applicationsets.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl label crd argocdextensions.argoproj.io "app.kubernetes.io/managed-by=Helm" --overwrite
+kubectl annotate crd argocdextensions.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+kubectl label crd appprojects.argoproj.io "app.kubernetes.io/managed-by=Helm" --overwrite
+kubectl annotate crd appprojects.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl delete sts argocd-application-controller -n devtroncd
 kubectl delete deploy argocd-redis argocd-repo-server argocd-server -n devtroncd
 provider=$(kubectl -n devtroncd get cm devtron-cm -o jsonpath='{.data.BLOB_STORAGE_PROVIDER}')
