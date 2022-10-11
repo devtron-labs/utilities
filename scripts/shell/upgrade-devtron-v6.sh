@@ -1,3 +1,5 @@
+current_version=$(helm ls -n devtroncd -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'[:]' '{print $2}' | awk -F'[-"]' '{print $4}')
+legacy_version=$(echo "$current_version 0.22.38" | awk '{print ($1 < $2)}')
 kubectl get deploy inception -n devtroncd
 if [ $(echo $?) -eq 1 ]
 then
@@ -6,7 +8,12 @@ kubectl create ns argo
 kubectl create ns devtron-ci
 kubectl create ns devtron-cd
 helm repo update
+if [ $legacy_version -eq 1 ]
+then
+helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set installer.arch="legacy"
+else
 helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values
+fi
 else
 echo "Found Devtron with CICD - Upgrading to latest version. Please ignore any errors you observe during upgrade"
 sleep 3
@@ -128,8 +135,6 @@ kubectl label crd appprojects.argoproj.io "app.kubernetes.io/managed-by=Helm" --
 kubectl annotate crd appprojects.argoproj.io "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
 kubectl delete sts argocd-application-controller -n devtroncd
 kubectl delete deploy argocd-redis argocd-repo-server argocd-server -n devtroncd
-current_version=$(helm ls -n devtroncd -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'[:]' '{print $2}' | awk -F'[-"]' '{print $4}')
-legacy_version=$(echo "$current_version 0.22.38" | awk '{print ($1 < $2)}')
 provider=$(kubectl -n devtroncd get cm devtron-cm -o jsonpath='{.data.BLOB_STORAGE_PROVIDER}')
 helm repo update
 if [ "$provider" = "MINIO" ]
