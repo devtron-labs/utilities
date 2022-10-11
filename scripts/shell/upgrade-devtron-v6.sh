@@ -1,4 +1,4 @@
-current_version=$(helm ls -n devtroncd -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'[:]' '{print $2}' | awk -F'[-"]' '{print $4}')
+current_version=$(helm ls -n devtroncd -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'["]' '{print $4}' | awk -F'[-]' '{print $3}')
 legacy_version=$(echo "$current_version 0.22.38" | awk '{print ($1 < $2)}')
 kubectl get deploy inception -n devtroncd
 if [ $(echo $?) -eq 1 ]
