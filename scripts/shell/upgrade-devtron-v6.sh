@@ -131,7 +131,7 @@ kubectl delete deploy argocd-redis argocd-repo-server argocd-server -n devtroncd
 current_version=$(helm ls -n devtroncd -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'[:]' '{print $2}' | awk -F'[-"]' '{print $4}')
 legacy_version=$(echo "$current_version 0.22.38" | awk '{print ($1 < $2)}')
 provider=$(kubectl -n devtroncd get cm devtron-cm -o jsonpath='{.data.BLOB_STORAGE_PROVIDER}')
-microk8s helm3 repo update
+helm repo update
 if [ "$provider" = "MINIO" ]
 then
 echo "Found Blob Storage Provider as Minio"
