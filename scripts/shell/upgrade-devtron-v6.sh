@@ -1,5 +1,16 @@
-current_version=$(helm ls -n devtroncd -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'["]' '{print $4}' | awk -F'[-]' '{print $3}')
-legacy_version=$(echo "$current_version 0.22.38" | awk '{print ($1 < $2)}')
+# Check if $RELEASE_NAME is set if not, then set default to devtron
+if [ -z $RELEASE_NAME ]
+then
+RELEASE_NAME=devtron
+fi
+current_version=$(helm ls -n devtroncd -f $RELEASE_NAME -o json | grep -Po '"chart":.*?[^\\]"' | awk -F'["]' '{print $4}' | awk -F'[-]' '{print $3}')
+# If current version not found, abort upgrade
+if [ -z $current_version ]
+then
+echo "Current Version not found - Aborting Upgrade please contact us on https://discord.devtron.ai"
+exit 1
+fi
+is_legacy=$(echo "$current_version 0.22.35" | awk '{print ($1 < $2)}')
 kubectl get deploy inception -n devtroncd
 if [ $(echo $?) -eq 1 ]
 then
@@ -8,7 +19,7 @@ kubectl create ns argo
 kubectl create ns devtron-ci
 kubectl create ns devtron-cd
 helm repo update
-if [ $legacy_version -eq 1 ]
+if [ $is_legacy -eq 1 ]
 then
 helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set installer.arch="legacy"
 else
@@ -142,7 +153,7 @@ then
 echo "Found Blob Storage Provider as Minio"
 minioAccessKey=$(kubectl -n devtroncd get secret devtron-minio -o jsonpath='{.data.accesskey}' | base64 -d)
 minioSecretKey=$(kubectl -n devtroncd get secret devtron-minio -o jsonpath='{.data.secretkey}' | base64 -d)
-if [ $legacy_version -eq 1 ]
+if [ $is_legacy -eq 1 ]
 then
 helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set configs.BLOB_STORAGE_PROVIDER="S3" --set configs.BLOB_STORAGE_S3_ENDPOINT="http://devtron-minio.devtroncd:9000" --set-string configs.BLOB_STORAGE_S3_ENDPOINT_INSECURE="true" --set secrets.BLOB_STORAGE_S3_ACCESS_KEY=$minioAccessKey --set secrets.BLOB_STORAGE_S3_SECRET_KEY=$minioSecretKey --set configs.DEFAULT_BUILD_LOGS_BUCKET="devtron-ci-log" --set configs.DEFAULT_CACHE_BUCKET="devtron-ci-cache" --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set notifier.enabled=true --set installer.arch="legacy"
 else
@@ -150,7 +161,7 @@ helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.
 fi
 else
 echo "Blob Storage Provider - $provider"
-if [ $legacy_version -eq 1 ]
+if [ $is_legacy -eq 1 ]
 then
 helm upgrade $RELEASE_NAME devtron/devtron-operator -n devtroncd -f https://raw.githubusercontent.com/devtron-labs/devtron/main/charts/devtron/values.yaml --reuse-values --set installer.modules={cicd} --set configs.BLOB_STORAGE_PROVIDER=$provider --set argo-cd.enabled=true --set security.enabled=true --set security.clair.enabled=true --set monitoring.grafana.enabled=true --set notifier.enabled=true --set installer.arch="legacy"
 else
