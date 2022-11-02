@@ -7,34 +7,27 @@
 - Create 2 s3 buckets for storing cache and logs in the same region where you intend to create Devtron cluster ( Names can be something like s3://organization-devtron-ci-caching (versioning enabled), s3://organization-devtron-ci-logs )
 - Create a customPolicy `devtron-cluster-IAM-policy` ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy ) and give S3FullAccess to the s3 buckets created in previous step and `ElasticLoadBalancingFullAccess` (Devtron creates a Loadbalancer for it's service)
 
-
-## Download the eksctl configs template and Modify
-
-### Already have a VPC where the Devtron Cluster needs to be provisioned
+## Clone the repo.
 ```
-wget https://raw.githubusercontent.com/devtron-labs/utilities/main/eksctl-configs/eksctl-devtron-prod-configs.yaml
+git clone https://github.com/devtron-labs/utilities.git
 ```
+## Prerequisites before run the provision script.
 
-### Let eksctl automatically create a new VPC and subnets
-```
-https://raw.githubusercontent.com/devtron-labs/utilities/main/eksctl-configs/ekstl-devtron-configs-create-new-vpc.yaml
-```
+- Make sure bastion have aws configured with required permission to provision EKS.
+- Make sure bastion have python installed.
+- Install `pyyaml` python module by running `pip3 install pyyaml`
 
-Edit the fields prefilled with sample data
+## First go inside eksctl-configs folder and run script by `python3 provision-eks.py`
 
-- vpc.id
-- vpc.subnets.private and vpc.subnets.public
-- vpc.clusterEndpoints.publicAccessCIDRs (Include the public IP addresses CIDR that you wish to whitelist for Kubernetes apiserver access, vpc cidr is already whitelisted if vpc.clusterEndpoints.privateAccess is set true) 
-- nodeGroups.ssh.publicKeyName for both the nodegroups
-- Replace AWS account ID in nodeGroups.iam.attachPolicyARNs ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy )
+- This script will going to install `helm`, `kubectl`, `eksctl` if these are already installed it will ignore.
+- Script will take inputs from users like `cluster-name`, `region`,`eks-version`, `arn of devtron-cluster-IAM-policy` , `key pair name`
+- Next it will take input `Do you want to use your existing vpc or not` and value of it either `yes` or `no`. 
+- Here if you provide `no` then it will create eks cluster with new vpc.
+- Here if you provide `yes` as input it will take input `vpc-id` , `total number of private subnets` 
+- Take input `subnet name` and its `subnet id` for private subnets. 
+- Next input `total number of public subnets`.
+- Next input `subnet name` and its `subnet id` after that it will provision eks with existing vpc and subnets which are provided.
 
-The eksctl template shared in the step above is a recommended configuration for devtron setup for Production usage, you can do any other changes according to your customizations if required or get in touch with Devtron Team on Discord https://discord.devtron.ai
-
-## Creating Cluster
-
-```
-eksctl create cluster -f eksctl-devtron-prod-configs.yaml
-```
 
 ### Manually creating Kubeconfig for a Cluster
 
