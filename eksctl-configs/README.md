@@ -26,7 +26,7 @@ git clone https://github.com/devtron-labs/utilities.git
 - Here if you provide `yes` as input it will take input `vpc-id` , `total number of private subnets` 
 - Take input `subnet name` and its `subnet id` for private subnets. 
 - Next input `total number of public subnets`.
-- Next input `subnet name` and its `subnet id` after that it will provision eks with existing vpc and subnets which are provided.
+- Next input `subnet name` and its `subnet id` for public subnets after that it will provision eks with existing vpc and subnets which are provided.
 
 
 ### Manually creating Kubeconfig for a Cluster
