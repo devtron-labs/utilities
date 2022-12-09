@@ -74,7 +74,7 @@ extract_ca_crt_from_secret() {
 
 get_user_token_from_secret() {
     echo -e -n "\\nGetting user token from secret..."
-    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 -d)
+    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
     printf "done"
 }
 
