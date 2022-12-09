@@ -39,6 +39,26 @@ create_serviceaccount_token(){
     TOKEN=$(kubectl create token "${SERVICE_ACCOUNT_NAME}" -n "${NAMESPACE}")
 }
 
+create_secret(){
+    echo -e "creating secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
+    kubectl apply -n "${NAMESPACE}" -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cd-user
+  annotations:
+    kubernetes.io/service-account.name: cd-user
+type: kubernetes.io/service-account-token
+EOF
+echo "secret created"
+}
+
+get_secret_name_from_secret() {
+    echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
+    SECRET_NAME=$(kubectl get secret "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .metadata.name)
+    echo "Secret name: ${SECRET_NAME}"
+ }
+
 get_secret_name_from_service_account() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
     SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .secrets[].name)
@@ -53,8 +73,8 @@ extract_ca_crt_from_secret() {
 }
 
 get_user_token_from_secret() {
-        echo -e -n "\\nGetting user token from secret..."
-    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
+    echo -e -n "\\nGetting user token from secret..."
+    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 -d)
     printf "done"
 }
 
@@ -105,7 +125,10 @@ then
  create_target_folder
  create_cluster_role_binding
  create_service_account
- create_serviceaccount_token
+ create_secret
+ get_secret_name_from_secret
+ extract_ca_crt_from_secret
+ get_user_token_from_secret
  set_kube_config_values
 else
  create_target_folder
