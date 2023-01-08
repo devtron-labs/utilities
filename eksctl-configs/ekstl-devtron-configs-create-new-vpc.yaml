@@ -4,11 +4,11 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.22"
+  version: "1.23"
 
 vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
-  cidr: "10.10.0.0/16"
+  cidr: "10.30.0.0/16"
 
 nodeGroups:
   - name: devtron-nodes
