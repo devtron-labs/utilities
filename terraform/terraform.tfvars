@@ -137,3 +137,9 @@ mtu_value = "1460"
 #if set to true, default routes (0.0.0.0/0) will be deleted immediately after network creation. Defaults to false.
 delete_default_routes_on_create_value = "false"
 
+# Name of log bucket & cache bucket
+
+#log_bucket = "${var.cluster_name}-log-bucket"
+#cache_bucket = "${var.cluster_name}-cache-bucket"
+
+
