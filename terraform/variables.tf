@@ -181,3 +181,8 @@ variable "cache_bucket_name" {
   description = "Bucket Name for cache"
   default     = "${var.cluster_name}-cache-bucket"
 }
+
+variable "bucket_storage_type" {
+  description = "Bucket storage type for log bucket"
+  default     = "STANDARD"
+}
