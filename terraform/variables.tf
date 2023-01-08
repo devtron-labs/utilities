@@ -171,13 +171,13 @@ variable "delete_default_routes_on_create_value" {
 }
 
 #log_bucket
-variable "log_bucket" {
+variable "log_bucket_name" {
   description = "Bucket Name for log"
   default     = "${var.cluster_name}-log-bucket"
 }
 
 #cache_bucket
-variable "cache_bucket" {
+variable "cache_bucket_name" {
   description = "Bucket Name for cache"
   default     = "${var.cluster_name}-cache-bucket"
 }
