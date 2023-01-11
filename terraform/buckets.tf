@@ -17,3 +17,19 @@ resource "google_storage_bucket" "cache_bucket" {
   location = var.region_name
 
 }
+
+
+resource "google_storage_bucket_iam_binding" "binding" {
+  bucket = "${var.cluster_name}-${var.cache_bucket_name}"
+  role = "roles/storage.admin"
+  members = [ "serviceAccount:${google_service_account.kubernetes.email}"
+  ]
+}
+
+resource "google_storage_bucket_iam_binding" "binding2" {
+  bucket = "${var.cluster_name}-${var.log_bucket_name}"
+  role = "roles/storage.admin"
+  members = [ "serviceAccount:${google_service_account.kubernetes.email}"
+  ]
+}
+

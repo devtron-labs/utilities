@@ -18,7 +18,7 @@ resource "google_container_node_pool" "general" {
   node_config {
     preemptible  = var.default_preemptible_value
     machine_type = var.default_machine_type_name
-
+    image_type = var.default_image_type
     labels = {
       role = "general"
     }
@@ -52,7 +52,7 @@ resource "google_container_node_pool" "spot" {
     machine_type = "e2-small"
     disk_size_gb = "20"
     disk_type = "pd-standard"
-#   image_type = ""
+    image_type = var.default_image_type
 #   spot = "true"
 
     labels = {

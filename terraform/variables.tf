@@ -19,6 +19,10 @@ variable "initial_node_count_default" {
   description = "Initial node count at the time of  cluster creation "
   default = "1"
 }
+variable "default_image_type"{
+  description = "Default node image type"
+  default = "cos_containerd"
+}
 variable "networking_mode_value" {
   description = "Determines whether alias IPs or routes will be used for pod IPs in the cluster."
   default     = "VPC_NATIVE"

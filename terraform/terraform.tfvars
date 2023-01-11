@@ -17,6 +17,10 @@ remove_default_node_pool_value = "true"
 #Initial node count at the time of  cluster creation
 initial_node_count_default = "1"
 
+#To set the default node image type uncomment the below variable & choose from these 3 option. 
+#cos: Container-Optimized OS with Docker OR ubuntu_containerd: Ubuntu with containerd. OR ubuntu: Ubuntu with Docker.
+default_image_type = "cos_containerd"
+
 #Determines whether alias IPs or routes will be used for pod IPs in the cluster.
 networking_mode_value = "VPC_NATIVE"
 
