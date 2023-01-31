@@ -1,0 +1,107 @@
+## Create EKS cluster with arm based instances.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name:  devtron-cluster
+  region: ap-south-1
+  version: "1.23"
+
+vpc:
+## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
+  cidr: "10.10.0.0/16"
+
+nodeGroups:
+  - name: devtron-nodes
+    privateNetworking: true
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.5
+      instanceTypes: ["m6g.xlarge","c6gn.2xlarge","r6g.xlarge"]
+      onDemandBaseCapacity: 2
+      onDemandPercentageAboveBaseCapacity: 0
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::xxxxxxxxxxxxx:policy/devtron-cluster-IAM-policy
+    ssh:
+      allow: true
+      publicKeyName: "infra"
+    volumeSize: 50
+    asgSuspendProcesses: ["AZRebalance"]
+    tags:
+      Component : cicd
+    kubeletExtraConfig:
+        kubeReserved:
+            cpu: "200m"
+            memory: "200Mi"
+            ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        cpuManagerPolicy: "static"
+        systemReserved:
+            cpu: "200m"
+            memory: "200Mi"
+            ephemeral-storage: "1Gi"
+        evictionHard:
+            memory.available:  "200Mi"
+            nodefs.available: "10%"
+        featureGates:
+            DynamicKubeletConfig: true
+            RotateKubeletServerCertificate: true
+            CPUManager: true
+
+  - name: ci-nodes
+    privateNetworking: true
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.5
+      instanceTypes: ["m6g.xlarge","c6gn.2xlarge","r6g.xlarge"]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::xxxxxxxxxxxxx:policy/devtron-cluster-IAM-policy
+    ssh:
+      allow: true
+      publicKeyName: "infra"
+    volumeSize: 100
+    asgSuspendProcesses: ["AZRebalance"]
+    tags:
+      Component : cicd
+    labels: {purpose: ci}
+    taints:
+      dedicated: "ci:NoSchedule"
+    kubeletExtraConfig:
+        kubeReserved:
+            cpu: "200m"
+            memory: "200Mi"
+            ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        systemReserved:
+            cpu: "200m"
+            memory: "200Mi"
+            ephemeral-storage: "1Gi"
+        evictionHard:
+            memory.available:  "200Mi"
+            nodefs.available: "10%"
+        featureGates:
+            DynamicKubeletConfig: true
+            RotateKubeletServerCertificate: true
