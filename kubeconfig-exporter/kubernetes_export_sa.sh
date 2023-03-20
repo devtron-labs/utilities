@@ -55,26 +55,25 @@ echo "secret created"
 
 get_secret_name_from_secret() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
-    SECRET_NAME=$(kubectl get secret "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .metadata.name)
+    SECRET_NAME=$(kubectl get secret "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}"  -o=jsonpath={.metadata.name})
     echo "Secret name: ${SECRET_NAME}"
  }
 
 get_secret_name_from_service_account() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
-    SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .secrets[].name)
+    SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o jsonpath='{.secrets[*].name}' )
     echo "Secret name: ${SECRET_NAME}"
 }
 
 extract_ca_crt_from_secret() {
     echo -e -n "\\nExtracting ca.crt from secret..."
-    kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq \
-    -r '.data["ca.crt"]' | base64 --decode > "${TARGET_FOLDER}/ca.crt"
+    kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o=jsonpath="{.data.ca\.crt}"| base64 --decode > "${TARGET_FOLDER}/ca.crt"
     printf "done"
 }
 
 get_user_token_from_secret() {
     echo -e -n "\\nGetting user token from secret..."
-    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
+    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}"  -o=jsonpath={.data.token}|base64 --decode)
     printf "done"
 }
 
@@ -117,7 +116,7 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-VERSION=$(kubectl version -o json | jq .serverVersion.minor | sed 's/+//' | cut -d '"' -f 2 )
+VERSION=$(kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
 VERSION=$(expr $VERSION)
 
 if [[ $VERSION -ge 24 ]]
