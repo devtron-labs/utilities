@@ -17,7 +17,7 @@ SERVER_URL=""
 TOKEN=""
 
 create_cluster_role_binding(){
-   echo -n "Creating cluster role binding of name ${SERVICE_ACCOUNT_NAME} with clusterRole cluster-admin" 
+   echo -e "\\nCreating cluster role binding of name ${SERVICE_ACCOUNT_NAME} with clusterRole cluster-admin" 
    kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Namespace
