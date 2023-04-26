@@ -17,7 +17,7 @@ SERVER_URL=""
 TOKEN=""
 
 create_cluster_role_binding(){
-   echo -n "Creating cluster role binding" 
+   echo -n "Creating cluster role binding of name ${SERVICE_ACCOUNT_NAME} with clusterRole cluster-admin" 
    kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Namespace
@@ -37,7 +37,7 @@ subjects:
     name: $SERVICE_ACCOUNT_NAME
     namespace: devtroncd
 EOF
-echo "cluster role created"
+echo "cluster rolebinding created"
 }
 
 create_target_folder() {
