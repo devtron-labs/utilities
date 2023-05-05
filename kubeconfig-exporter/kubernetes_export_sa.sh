@@ -4,8 +4,8 @@ set -o pipefail
 
 # Add user to k8s using service account, no RBAC (must create RBAC after this script)
 if [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$2" ]]; then
- echo "usage: $0 <service_account_name> <namespace> <clusterrole_file_absolute_path>"
- echo "ex: sh ./kubeconfig-exporter/kubernetes_export_sa.sh cd-user cd-user /Users/nishant/workspace/inception/kubeconfig-exporter/clusterrole.yaml"
+ echo "usage: $0 <service_account_name> <namespace>"
+ echo "ex: sh ./kubeconfig-exporter/kubernetes_export_sa.sh cd-user cd-user"
  exit 1
 fi
 
@@ -13,13 +13,31 @@ SERVICE_ACCOUNT_NAME=$1
 NAMESPACE="$2"
 KUBECFG_FILE_NAME="tmp/k8s-${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-conf-${RANDOM}.conf"
 TARGET_FOLDER="tmp/"
-CLUSTER_ROLE_FILE=$3
 SERVER_URL=""
 TOKEN=""
 
 create_cluster_role_binding(){
-   echo -n "Creating cluster role binding from ${CLUSTER_ROLE_FILE}" 
-   kubectl apply -f ${CLUSTER_ROLE_FILE}
+   echo -e "\\nCreating cluster role binding of name ${SERVICE_ACCOUNT_NAME} with clusterRole cluster-admin" 
+   kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devtroncd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: $SERVICE_ACCOUNT_NAME
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: $SERVICE_ACCOUNT_NAME
+    namespace: devtroncd
+EOF
+echo "cluster rolebinding created"
 }
 
 create_target_folder() {
@@ -45,9 +63,9 @@ create_secret(){
 apiVersion: v1
 kind: Secret
 metadata:
-  name: cd-user
+  name: $SERVICE_ACCOUNT_NAME
   annotations:
-    kubernetes.io/service-account.name: cd-user
+    kubernetes.io/service-account.name: $SERVICE_ACCOUNT_NAME
 type: kubernetes.io/service-account-token
 EOF
 echo "secret created"
@@ -55,26 +73,25 @@ echo "secret created"
 
 get_secret_name_from_secret() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
-    SECRET_NAME=$(kubectl get secret "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .metadata.name)
+    SECRET_NAME=$(kubectl get secret "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o=jsonpath={.metadata.name})
     echo "Secret name: ${SECRET_NAME}"
  }
 
 get_secret_name_from_service_account() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
-    SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o json | jq -r .secrets[].name)
+    SECRET_NAME=$(kubectl get sa "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o=jsonpath='{.secrets[*].name}')
     echo "Secret name: ${SECRET_NAME}"
 }
 
 extract_ca_crt_from_secret() {
     echo -e -n "\\nExtracting ca.crt from secret..."
-    kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq \
-    -r '.data["ca.crt"]' | base64 --decode > "${TARGET_FOLDER}/ca.crt"
+    kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o=jsonpath="{.data.ca\.crt}"| base64 --decode > "${TARGET_FOLDER}/ca.crt"
     printf "done"
 }
 
 get_user_token_from_secret() {
     echo -e -n "\\nGetting user token from secret..."
-    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o json | jq -r '.data["token"]' | base64 --decode)
+    TOKEN=$(kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o=jsonpath={.data.token}|base64 --decode)
     printf "done"
 }
 
@@ -117,7 +134,7 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-VERSION=$(kubectl version -o json | jq .serverVersion.minor | sed 's/+//' | cut -d '"' -f 2 )
+VERSION=$(kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
 VERSION=$(expr $VERSION)
 
 if [[ $VERSION -ge 24 ]]
