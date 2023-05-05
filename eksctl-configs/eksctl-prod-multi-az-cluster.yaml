@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: prod-1
   region: us-west-2
-  version: "1.22"
+  version: "1.26"
 
 vpc:
   cidr: 172.31.0.0/16
@@ -56,7 +56,6 @@ nodeGroups:
             memory.available:  "200Mi"
             nodefs.available: "10%"
         featureGates:
-            DynamicKubeletConfig: true
             RotateKubeletServerCertificate: true
             CPUManager: true
 
@@ -104,7 +103,6 @@ nodeGroups:
             memory.available:  "200Mi"
             nodefs.available: "10%"
         featureGates:
-            DynamicKubeletConfig: true
             RotateKubeletServerCertificate: true
             CPUManager: true
 
@@ -152,6 +150,5 @@ nodeGroups:
             memory.available:  "200Mi"
             nodefs.available: "10%"
         featureGates:
-            DynamicKubeletConfig: true
             RotateKubeletServerCertificate: true
             CPUManager: true
