@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: prod-1
   region: us-west-2
-  version: "1.25"
+  version: "1.26"
 
 vpc:
   cidr: 172.31.0.0/16
