@@ -57,7 +57,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "devtron_pool" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks_cluster.id
   node_count            = 1
   min_count             = 1
-  max_count             = 2
+  max_count             = 5
   vm_size               = "Standard_D4as_v5"
   enable_auto_scaling   = true
   # Add labels on nodes
