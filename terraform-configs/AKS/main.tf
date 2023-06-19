@@ -25,7 +25,7 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
   sku_tier            = "Paid"
-  kubernetes_version  = "1.24" # Specify Kubernetes version
+  kubernetes_version  = "1.26" # Specify Kubernetes version
   dns_prefix = "devtron-prod"
   # Add ssh access configurations for nodes
   linux_profile {
