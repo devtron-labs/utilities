@@ -11,6 +11,8 @@ terraform init
 ```
 Edit `variables.tf` file and changes the names and location of resources to be created.
 
+If you want to have SSH access on your nodes for debugging purpose, add a public key for ssh access under `linux_profile` section or remove the linux_profile section if you don't want it.
+
 Login to your azure account in local system using
 ```
 az login
