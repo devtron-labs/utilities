@@ -14,25 +14,13 @@ Parameters:
     Type: String
     Description: AWS region for the EKS cluster (e.g., ap-south-1)
 
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: ID of the existing VPC in which the EKS cluster will be created
+  VpcCIDR:
+    Type: String
+    Description: CIDR range for the VPC (e.g., 10.30.0.0/16)
 
-  PrivateSubnet1A:
-    Type: AWS::EC2::Subnet::Id
-    Description: Subnet ID for the private subnet in given region (e.g., ID for ap-south-1a for region ap-south-1)
-
-  PrivateSubnet1B:
-    Type: AWS::EC2::Subnet::Id
-    Description: Subnet ID for the private subnet in given region (e.g., ID for ap-south-1b for region ap-south-1)
-
-  PublicSubnet1A:
-    Type: AWS::EC2::Subnet::Id
-    Description: Subnet ID for the public subnet in given region (e.g., ID for ap-south-1a for region ap-south-1)
-
-  PublicSubnet1B:
-    Type: AWS::EC2::Subnet::Id
-    Description: Subnet ID for the public subnet in given region (e.g., ID for ap-south-1b for region ap-south-1)
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 Key Pair for SSH access
 
   DevtronODInstanceTypes:
     Type: List<AWS::EC2::InstanceType>
@@ -42,11 +30,14 @@ Parameters:
     Type: List<AWS::EC2::InstanceType>
     Description: List of instance types for devtron-ci-nodes (e.g., ["c5a.xlarge", "r5a.xlarge", "m5a.xlarge"])
 
-  DevtronPublicKeyName:
-    Type: String
-    Description: Name for the SSH key pair used by Devtron nodes
-
 Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
   EKSCluster:
     Type: AWS::EKS::Cluster
     Properties:
@@ -54,9 +45,8 @@ Resources:
       Version: !Ref ClusterVersion
       RoleArn: !GetAtt EKSClusterServiceRole.Arn
       ResourcesVpcConfig:
-        SubnetIds:
-          - !Ref PrivateSubnet1A
-          - !Ref PrivateSubnet1B
+        SecurityGroupIds:
+          - !GetAtt EKSClusterSecurityGroup.GroupId
 
   EKSClusterServiceRole:
     Type: AWS::IAM::Role
@@ -71,19 +61,24 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 
+  EKSClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the EKS cluster
+      VpcId: !Ref VPC
+
   DevtronODNodeGroup:
     Type: AWS::EKS::Nodegroup
     Properties:
       ClusterName: !Ref EKSCluster
       NodegroupName: devtron-od-nodes
-      Subnets:
-        - !Ref PrivateSubnet1A
-        - !Ref PrivateSubnet1B
       InstanceTypes: !Ref DevtronODInstanceTypes
       ScalingConfig:
         DesiredSize: 2
         MinSize: 2
         MaxSize: 5
+        OnDemandBaseCapacity: 2
+        OnDemandPercentageAboveBaseCapacity: 0
       Labels:
         nodegroup-type: devtron-od-nodes
       Tags:
@@ -100,7 +95,7 @@ Resources:
           - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
       Ssh:
         Allow: true
-        PublicKeyName: !Ref DevtronPublicKeyName
+        PublicKeyName: !Ref KeyName
       VolumeSize: 50
       KubeletExtraConfig:
         kubeReserved:
@@ -124,19 +119,24 @@ Resources:
     Properties:
       ClusterName: !Ref EKSCluster
       NodegroupName: devtron-ci-nodes
-      Subnets:
-        - !Ref PrivateSubnet1A
-        - !Ref PrivateSubnet1B
       InstanceTypes: !Ref DevtronCIInstanceTypes
       ScalingConfig:
         DesiredSize: 1
         MinSize: 1
         MaxSize: 5
+        OnDemandBaseCapacity: 0
+        OnDemandPercentageAboveBaseCapacity: 0
+        MaxPrice: 0.5
       Labels:
+        purpose: ci
         nodegroup-type: devtron-ci-nodes
       Tags:
         - Key: Component
           Value: cicd
+      Taints:
+        - key: dedicated
+          value: "ci:NoSchedule"
+          effect: NoSchedule    
       Iam:
         WithAddonPolicies:
           AutoScaler: true
@@ -148,7 +148,7 @@ Resources:
           - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
       Ssh:
         Allow: true
-        PublicKeyName: !Ref DevtronPublicKeyName
+        PublicKeyName: !Ref KeyName
       VolumeSize: 100
       KubeletExtraConfig:
         kubeReserved:
@@ -165,11 +165,6 @@ Resources:
           nodefs.available: "10%"
         featureGates:
           RotateKubeletServerCertificate: true
-
-  DevtronPublicKey:
-    Type: AWS::EC2::KeyPair
-    Properties:
-      KeyName: !Ref DevtronPublicKeyName
 
   InstallDevtronFunction:
     Type: AWS::Lambda::Function
