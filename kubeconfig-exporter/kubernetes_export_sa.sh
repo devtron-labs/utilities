@@ -134,8 +134,18 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-VERSION=$(kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
-VERSION=$(expr $VERSION)
+
+CLIENT_VERSION=$(kubectl version --client | awk '/Client Version: /{print $3}'| cut -d '.' -f 2)
+echo "$CLIENT_VERSION"
+if [[ $CLIENT_VERSION -ge 27 ]]
+then 
+    VERSION=$(kubectl version | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
+    VERSION=$(expr $VERSION)
+    echo "hii"
+else
+    VERSION=$(kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
+    VERSION=$(expr $VERSION)
+fi
 
 if [[ $VERSION -ge 24 ]]
 then
