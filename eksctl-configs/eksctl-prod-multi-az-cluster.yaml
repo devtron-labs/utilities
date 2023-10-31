@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: prod-1
   region: us-west-2
-  version: "1.26"
+  version: "1.27"
 
 vpc:
   cidr: 172.31.0.0/16
@@ -28,6 +28,7 @@ nodeGroups:
     iam:
       withAddonPolicies:
         autoScaler: true
+        ebs: true
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
@@ -75,6 +76,8 @@ nodeGroups:
     iam:
       withAddonPolicies:
         autoScaler: true
+        ebs: true
+
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
@@ -122,6 +125,8 @@ nodeGroups:
     iam:
       withAddonPolicies:
         autoScaler: true
+        ebs: true
+
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
