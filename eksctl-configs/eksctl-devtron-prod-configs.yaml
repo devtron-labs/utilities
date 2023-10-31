@@ -35,6 +35,7 @@ nodeGroups:
     iam:
       withAddonPolicies:
         autoScaler: true
+        ebs: true
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
