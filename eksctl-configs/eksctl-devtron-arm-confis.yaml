@@ -6,7 +6,7 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.26"
+  version: "1.27"
 
 vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
@@ -26,6 +26,8 @@ nodeGroups:
     iam:
       withAddonPolicies:
         autoScaler: true
+        ebs: true
+
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
