@@ -28,9 +28,10 @@ If the cluster is air-gapped or if whitelisting is not possible, Refer [this doc
 
 
 ## Running the script to convert Devtron OSS to enterprise version
-Run the following script to convert your cluster from OSS to enterprise: 
+Run the following script to convert your cluster from OSS to enterprise:
+
 ```bash
-curl https://raw.githubusercontent.com/devtron-labs/utilities/main/oss-to-ent-script/devtron-enterprise.sh && bash devtron-enterprise.sh 
+curl https://raw.githubusercontent.com/devtron-labs/utilities/main/scripts/devtron-oss-to-ent/devtron-enterprise.sh && bash devtron-enterprise.sh 
 ```
 
 
