@@ -1,18 +1,19 @@
 #!/bin/bash
 
 # PRIVATE
-git_sensor=devtroninc.azurecr.io/git-sensor:03493b42-535-21204
-kubelink=devtroninc.azurecr.io/kubelink:8bf60a10-310-21147
-casbin=devtroninc.azurecr.io/casbin:a3ec2dbe-f6ae2c72-462-20683
-ci_runner=quay.io/devtron/ci-runner:dd5dffd2-515-21154
-dashboard=devtroninc.azurecr.io/dashboard:4ee7597e-6-21251
-devtron=devtroninc.azurecr.io/devtron:ff77c0b9-4-21269
+git_sensor=devtroninc.azurecr.io/git-sensor:a9640c46-535-22179
+kubelink=devtroninc.azurecr.io/kubelink:036bf511-310-22185
+casbin=devtroninc.azurecr.io/casbin:4e6c4bf2-dba5b278-462-21695
+ci_runner=quay.io/devtron/ci-runner:158160d5-515-21995
+dashboard=devtroninc.azurecr.io/dashboard:ae14bce0-6-22129
+devtron=devtroninc.azurecr.io/devtron:25936ba1-4-22063
 
 # PUBLIC
-app_sync_job=quay.io/devtron/chart-sync:98957687-132-19148
-image_scanner=ghcr.io/devtron-labs/image-scanner:1e0b2312-112-21164
+app_sync_job=quay.io/devtron/chart-sync:d0dcc590-132-21155
+image_scanner=ghcr.io/devtron-labs/image-scanner:c0416bc2-112-21706
 lens=ghcr.io/devtron-labs/lens:70577aaa-19-21169
-kubewatch=ghcr.io/devtron-labs/kubewatch:91c2cece-370-21146
+kubewatch=ghcr.io/devtron-labs/kubewatch:50d4d32d-370-21699
+
 
 POSTGRES_PASSWORD=$(kubectl -n devtroncd get secret postgresql-postgresql -o jsonpath='{.data.postgresql-password}' | base64 -d)
 
@@ -27,6 +28,7 @@ kubectl patch configmap devtron-custom-cm -n devtroncd --patch "{\"data\": {\"DE
 kubectl patch configmap devtron-custom-cm -n devtroncd --patch "{\"data\": {\"APP_SYNC_IMAGE\": \"$app_sync_job\"}}"
 kubectl patch configmap devtron-cm -n devtroncd --patch "{\"data\": {\"IS_INTERNAL_USE\": \"true\"}}"
 kubectl patch configmap dashboard-cm -n devtroncd --patch "{\"data\": {\"HIDE_GITOPS_OR_HELM_OPTION\": \"false\"}}"
+kubectl patch configmap dashboard-cm -n devtroncd --patch "{\"data\": {\"HIDE_DISCORD\": \"true\"}}"
 
 echo "=========================================="
 
