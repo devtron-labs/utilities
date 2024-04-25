@@ -29,6 +29,7 @@ kubectl patch configmap devtron-custom-cm -n devtroncd --patch "{\"data\": {\"AP
 kubectl patch configmap devtron-cm -n devtroncd --patch "{\"data\": {\"IS_INTERNAL_USE\": \"true\"}}"
 kubectl patch configmap dashboard-cm -n devtroncd --patch "{\"data\": {\"HIDE_GITOPS_OR_HELM_OPTION\": \"false\"}}"
 kubectl patch configmap dashboard-cm -n devtroncd --patch "{\"data\": {\"HIDE_DISCORD\": \"true\"}}"
+kubectl patch configmap devtron-custom-cm -n devtroncd --patch "{\"data\": {\"CLONING_MODE\": \"FULL\"}}"
 
 echo "=========================================="
 
