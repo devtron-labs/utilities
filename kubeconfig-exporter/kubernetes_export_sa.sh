@@ -144,8 +144,8 @@ then
     VERSION=$(kubectl version | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
     VERSION=$(expr $VERSION)
 else
-    #VERSION=$(kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
-    VERSION=$(kubectl version | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
+    VERSION=$(kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
+    #VERSION=$(kubectl version | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
 
     VERSION=$(expr $VERSION)
 fi
