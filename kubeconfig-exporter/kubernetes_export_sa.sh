@@ -18,7 +18,7 @@ TOKEN=""
 
 create_cluster_role_binding(){
    echo -e "\\nCreating cluster role binding of name ${SERVICE_ACCOUNT_NAME} with clusterRole cluster-admin"
-   kubectl apply -f - <<EOF
+    kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -48,7 +48,7 @@ create_target_folder() {
 
 create_service_account() {
     echo -e "\\nCreating a service account in ${NAMESPACE} namespace: ${SERVICE_ACCOUNT_NAME}"
-    kubectl create sa "${SERVICE_ACCOUNT_NAME}" --namespace "${NAMESPACE}"
+     kubectl create sa "${SERVICE_ACCOUNT_NAME}" --namespace "${NAMESPACE}"
 }
 
 create_serviceaccount_token(){
@@ -59,7 +59,7 @@ create_serviceaccount_token(){
 
 create_secret(){
     echo -e "creating secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
-    kubectl apply -n "${NAMESPACE}" -f - <<EOF
+     kubectl apply -n "${NAMESPACE}" -f - <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -85,7 +85,7 @@ get_secret_name_from_service_account() {
 
 extract_ca_crt_from_secret() {
     echo -e -n "\\nExtracting ca.crt from secret..."
-    kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o=jsonpath="{.data.ca\.crt}"| base64 --decode > "${TARGET_FOLDER}/ca.crt"
+     kubectl get secret --namespace "${NAMESPACE}" "${SECRET_NAME}" -o=jsonpath="{.data.ca\.crt}"| base64 --decode > "${TARGET_FOLDER}/ca.crt"
     printf "done"
 }
 
@@ -109,14 +109,14 @@ set_kube_config_values() {
     # Set up the config
     echo -e "\\nPreparing k8s-${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-conf"
     echo -n "Setting a cluster entry in kubeconfig..."
-    kubectl config set-cluster "${CLUSTER_NAME}" \
+     kubectl config set-cluster "${CLUSTER_NAME}" \
     --kubeconfig="${KUBECFG_FILE_NAME}" \
     --server="${SERVER_URL}" \
     --certificate-authority="${TARGET_FOLDER}/ca.crt" \
     --embed-certs=true
 
     echo -n "Setting token credentials entry in kubeconfig..."
-    kubectl config set-credentials \
+     kubectl config set-credentials \
     "${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-${CLUSTER_NAME}" \
     --kubeconfig="${KUBECFG_FILE_NAME}" \
     --token="${TOKEN}"
@@ -130,7 +130,7 @@ set_kube_config_values() {
     --namespace="${NAMESPACE}"
 
     echo -n "Setting the current-context in the kubeconfig file..."
-    kubectl config use-context "${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-${CLUSTER_NAME}" \
+     kubectl config use-context "${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-${CLUSTER_NAME}" \
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
