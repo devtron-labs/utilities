@@ -6,7 +6,7 @@ This guide provides instructions for installing Devtron Enterprise edition or up
 1. Helm installed on your cluster
 2. Access to a Kubernetes cluster
 3. If the cluster has restrictions on internet access please ensure that the domain ```devtroninc.azurecr.io``` is whitelisted in the firewall.
-4. Username, token,dockerserver and `ent-values.yaml` or `ent-bom.yaml` file (for upgrade) provided by the Devtron Team
+4. Username, token,registry and `ent-values.yaml` or `ent-bom.yaml` file (for upgrade) provided by the Devtron Team
 
 ## Setting up credentials and yaml file:
 
@@ -15,7 +15,7 @@ Before proceeding with the installation or upgrade, export the username and toke
 ```bash
 export username=XXXXXXXXXXX
 export token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-export dockerserver=XXXXXXXXXXX
+export registry=XXXXXXXXXXX
 ```
 
 For Fresh Installation:
@@ -41,14 +41,14 @@ For Upgrade:
    ```bash
    kubectl create secret docker-registry devtron-image-pull-enterprise \
       --namespace devtroncd \
-      --docker-server=$dockerserver \
+      --docker-server=$registry \
       --docker-username=$username \
       --docker-password=$token
    ```
 
 3. Install Devtron using Helm:
    ```bash
-   helm install devtron devtron/devtron-operator -f ent-values.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true --set components.dashboard.registry=$dockerserver --set components.devtron.registry=$dockerserver --set components.kubelink.registry=$dockerserver --set components.gitsensor.registry=$dockerserver --set security.imageScanner.registry=$dockerserver 
+   helm install devtron devtron/devtron-operator -f ent-values.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry 
    ```
 
 ## Upgrading Existing OSS Devtron to Enterprise
@@ -72,14 +72,14 @@ For Upgrade:
    ```bash
    kubectl create secret docker-registry devtron-image-pull-enterprise \
       --namespace devtroncd \
-      --docker-server=$dockerserver \
+      --docker-server=$registry \
       --docker-username=$username \
       --docker-password=$token
    ```
 
 4. Upgrade the Devtron stack:
    ```bash
-   helm upgrade -n devtroncd devtron devtron/devtron-operator --reuse-values -f ent-bom.yaml --set components.dashboard.registry=$dockerserver --set components.devtron.registry=$dockerserver --set components.kubelink.registry=$dockerserver --set components.gitsensor.registry=$dockerserver --set security.imageScanner.registry=$dockerserver
+   helm upgrade -n devtroncd devtron devtron/devtron-operator --reuse-values -f ent-bom.yaml --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry
    ```
 
 ## Note:
