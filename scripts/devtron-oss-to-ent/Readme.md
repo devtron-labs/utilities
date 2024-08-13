@@ -1,39 +1,90 @@
 # Devtron Enterprise Installation (For evaluation/trials only)
 
-## Pre-requisites:
-1. Make sure that the open-source software (OSS) version of Devtron is installed and operational. Refer [install OSS Devtron](https://docs.devtron.ai/install). 
-2. Ensure all needed modules are pre-installed in the OSS version before converting it to Enterprise stack. Updating Devtron using Helm or from GUI post enterprise conversion will convert your stack back to OSS. 
-3. kubectl should be installed and configured to access the Devtron cluster from the terminal where the following script will be executed. 
-4. Throughout the execution of this bash script, ensure appropriate permissions are granted to create files. The script is intended to generate five files for migration YAML and microservice YAML, which will be subsequently applied using kubectl.
+This guide provides instructions for installing Devtron Enterprise edition or upgrading from the open-source (OSS) version to the Enterprise version using Helm.
 
-## Creating ImagepullSecrets:
-1. Ensure to export the username and token variables (issued by Devtron) before proceeding with the next steps.
+## Pre-requisites for Client:
+1. Helm installed on your cluster
+2. Access to a Kubernetes cluster
+3. If the cluster has restrictions on internet access please ensure that the domain ```*.azurecr.io``` is whitelisted in the firewall.
+4. Username, token, and `ent-values.yaml` or `ent-bom.yaml` file (for upgrade) provided by the Devtron Team
+
+## Setting up credentials and yaml file:
+
+Before proceeding with the installation or upgrade, export the username and token variables and create the values.yaml or ent-bom.yaml:
+
 ```bash
 export username=XXXXXXXXXXX
 export token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
-### Unrestricted Internet access or Firewall blocks
-If the cluster has unrestricted internet access, continue to run the following script. Else, if internet access is restricted via a firewall, please ensure that the domain devtronent.azurecr.io is whitelisted in the firewall.
-
-Run the below command to create the imagepull secret:
-```bash
-kubectl create secret docker-registry devtron-image-pull-enterprise\
-    --namespace devtroncd \
-    --docker-server=devtroninc.azurecr.io \
-    --docker-username=$username \
-    --docker-password=$token
-```
-### If Air-gapped Cluster 
-If the cluster is air-gapped or if whitelisting is not possible, Refer [this document](https://docs.google.com/document/d/1JaLRniL0U6o54YpT3An2_6EsuuCk2CL9y0Qlira2pWc/edit?usp=sharing) for the air-gapped installations.
-
-
-## Running the script to convert Devtron OSS to enterprise version
-Run the following script to convert your cluster from OSS to enterprise:
-
-```bash
-curl -O https://raw.githubusercontent.com/devtron-labs/utilities/main/scripts/devtron-oss-to-ent/devtron-enterprise.sh && bash devtron-enterprise.sh 
+export dockerserver=xxxxxxxxxxxxxx
 ```
 
+For Fresh Installation:
+    ```
+    vi ent-values.yaml
+    ```
 
->>> **PS:** The credentials provided for evaluation or trial purposes will expire once the evaluation or trial period concludes. Please make sure to revert your stack to the OSS version or purchase an enterprise subscription before the trial ends. Continuing to use Devtron enterprise beyond the evaluation period without a valid license may result in a licensing violation.
+For Upgrade:
+    ```
+    vi ent-bom.yaml
+    ```
 
+## Fresh Installation of Devtron Enterprise
+
+1. Add the Devtron Helm repository:
+   ```bash
+    kubectl create ns devtroncd
+    helm repo add devtron https://helm.devtron.ai
+    helm repo update devtron
+   ```
+   
+2. Create ImagePullSecrets in devtroncd namespace:
+   ```bash
+   kubectl create secret docker-registry devtron-image-pull-enterprise \
+      --namespace devtroncd \
+      --docker-server=$dockerserver \
+      --docker-username=$username \
+      --docker-password=$token
+   ```
+
+3. Install Devtron using Helm:
+   ```bash
+   helm install devtron devtron/devtron-operator -f ent-values.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true
+   ```
+
+## Upgrading Existing OSS Devtron to Enterprise
+
+*Run the First two commands only if you are on a version lower than 0.7.x*
+
+1. Set the release name & create the ent-bom.yaml:
+   ```bash
+   export RELEASE_NAME=devtron
+   ```
+
+2. Update labels and annotations:
+   ```bash
+   kubectl -n devtron-ci label sa --all "app.kubernetes.io/managed-by=Helm" --overwrite
+   kubectl -n devtron-ci annotate sa --all "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+   kubectl -n devtron-cd label sa --all "app.kubernetes.io/managed-by=Helm" --overwrite
+   kubectl -n devtron-cd annotate sa --all "meta.helm.sh/release-name=$RELEASE_NAME" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+   ```
+
+3. Create ImagePullSecrets in devtroncd namespace:
+   ```bash
+   kubectl create secret docker-registry devtron-image-pull-enterprise \
+      --namespace devtroncd \
+      --docker-server=devtroninc.azurecr.io \
+      --docker-username=$username \
+      --docker-password=$token
+   ```
+
+4. Upgrade the Devtron stack:
+   ```bash
+   helm upgrade -n devtroncd devtron devtron/devtron-operator --reuse-values -f ent-bom.yaml
+   ```
+
+## Note:
+- Ensure you have the `ent-values.yaml` file (for fresh installation) or `ent-bom.yaml` file (for upgrade) provided by the Devtron Team before proceeding with the installation or upgrade.
+- The credentials provided for evaluation or trial purposes will expire once the evaluation or trial period concludes. Please make sure to revert your stack to the OSS version or purchase an enterprise subscription before the trial ends.
+- Continuing to use Devtron Enterprise beyond the evaluation period without a valid license may result in a licensing violation.
+
+For any issues or additional support, please contact the Devtron support team. :)
