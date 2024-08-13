@@ -72,7 +72,7 @@ For Upgrade:
    ```bash
    kubectl create secret docker-registry devtron-image-pull-enterprise \
       --namespace devtroncd \
-      --docker-server=devtroninc.azurecr.io \
+      --docker-server=$dockerserver \
       --docker-username=$username \
       --docker-password=$token
    ```
