@@ -5,7 +5,7 @@ This guide provides instructions for installing Devtron Enterprise edition or up
 ## Pre-requisites for Client:
 1. Helm installed on your cluster
 2. Access to a Kubernetes cluster
-3. If the cluster has restrictions on internet access please ensure that the domain ```*.azurecr.io``` is whitelisted in the firewall.
+3. If the cluster has restrictions on internet access please ensure that the domain ```devtroninc.azurecr.io``` is whitelisted in the firewall.
 4. Username, token, and `ent-values.yaml` or `ent-bom.yaml` file (for upgrade) provided by the Devtron Team
 
 ## Setting up credentials and yaml file:
@@ -15,7 +15,6 @@ Before proceeding with the installation or upgrade, export the username and toke
 ```bash
 export username=XXXXXXXXXXX
 export token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-export dockerserver=xxxxxxxxxxxxxx
 ```
 
 For Fresh Installation:
@@ -41,7 +40,7 @@ For Upgrade:
    ```bash
    kubectl create secret docker-registry devtron-image-pull-enterprise \
       --namespace devtroncd \
-      --docker-server=$dockerserver \
+      --docker-server=devtroninc.azurecr.io \
       --docker-username=$username \
       --docker-password=$token
    ```
@@ -72,7 +71,7 @@ For Upgrade:
    ```bash
    kubectl create secret docker-registry devtron-image-pull-enterprise \
       --namespace devtroncd \
-      --docker-server=$dockerserver \
+      --docker-server=devtroninc.azurecr.io \
       --docker-username=$username \
       --docker-password=$token
    ```
