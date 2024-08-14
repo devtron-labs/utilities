@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.27"
+  version: "1.30"
 
 vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
@@ -59,8 +59,8 @@ nodeGroups:
 
   - name: ci-nodes
     privateNetworking: true
-    desiredCapacity: 1
-    minSize: 1
+    desiredCapacity: 0
+    minSize: 0
     maxSize: 5
     instancesDistribution:
       maxPrice: 0.5
