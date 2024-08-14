@@ -59,8 +59,8 @@ nodeGroups:
 
   - name: ci-nodes
     privateNetworking: true
-    desiredCapacity: 0
-    minSize: 0
+    desiredCapacity: 1
+    minSize: 1
     maxSize: 5
     instancesDistribution:
       maxPrice: 0.5
