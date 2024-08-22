@@ -14,7 +14,7 @@ podman login -u $TARGET_REGISTRY_USERNAME -p $TARGET_REGISTRY_TOKEN $TARGET_REGI
 podman login -u $SOURCE_REGISTRY_USERNAME -p $SOURCE_REGISTRY_TOKEN devtroninc.azurecr.io
 cp $SOURCE_IMAGES_FILE_NAME $TARGET_IMAGES_FILE_NAME
 while read source_image; do
-  if [[ "$source_image" == *"devtron:"* || "$source_image" == *"hyperion:"* || "$source_image" == *"dashboard:"* || "$source_image" == *"casbin:"* || "$source_image" == *"test:"* ]]
+  if [[ "$source_image" == *"devtron:"* || "$source_image" == *"hyperion:"* || "$source_image" == *"dashboard:"* || "$source_image" == *"casbin:"* || "$source_image" == *"test:"* || "$source_image" == *"kubelink:"* ]]
   then
   SOURCE_REGISTRY="devtroninc.azurecr.io"
   sed -i "s|${SOURCE_REGISTRY}|${TARGET_REGISTRY}|g" $TARGET_IMAGES_FILE_NAME
