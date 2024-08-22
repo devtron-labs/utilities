@@ -1,8 +1,8 @@
-devtroninc.azurecr.io/hyperion:291c4c75-282-24830
+devtroninc.azurecr.io/hyperion:e5bf0e47-715-24908
 quay.io/devtron/authenticator:e414faff-393-13273
 quay.io/devtron/dex:v2.30.2
-quay.io/devtron/kubelink:0dee6306-564-23843
-devtroninc.azurecr.io/dashboard:6827e704-b6b6a2af-6-24799
+devtroninc.azurecr.io/kubelink:fb418a84-310-24907
+devtroninc.azurecr.io/dashboard:3e4c6553-6827e704-598-24873
 devtroninc.azurecr.io/test:eb6dd0d7-684-24326
 devtroninc.azurecr.io/casbin:8a0c2298-11b51149-462-24419
 quay.io/devtron/postgres_exporter:v0.4.7
@@ -10,7 +10,7 @@ quay.io/devtron/minideb:latest
 quay.io/devtron/postgres:11.9.0-debian-10-r26
 quay.io/devtron/chart-sync:5a1d0301-150-23845
 quay.io/devtron/devtron-utils:dup-chart-repo-v1.1.0
-quay.io/devtron/hyperion:291c4c75-280-23860
+devtroninc.azurecr.io/hyperion:e5bf0e47-715-24908
 quay.io/devtron/migrator:v4.16.2
-quay.io/devtron/hyperion:291c4c75-280-23860
+devtroninc.azurecr.io/hyperion:e5bf0e47-715-24908
 quay.io/devtron/kubectl:latest
