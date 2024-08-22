@@ -11,12 +11,12 @@ TARGET_REGISTRY=${TARGET_REGISTRY}
 SOURCE_IMAGES_FILE_NAME="${SOURCE_IMAGES_FILE_NAME:=devtron-images-ea-ent.txt.source}"
 TARGET_IMAGES_FILE_NAME="${TARGET_IMAGES_FILE_NAME:=devtron-images.txt.target}"
 podman login -u $TARGET_REGISTRY_USERNAME -p $TARGET_REGISTRY_TOKEN $TARGET_REGISTRY
-podman login -u $SOURCE_REGISTRY_USERNAME -p $SOURCE_REGISTRY_TOKEN devtronent.azurecr.io
+podman login -u $SOURCE_REGISTRY_USERNAME -p $SOURCE_REGISTRY_TOKEN devtroninc.azurecr.io
 cp $SOURCE_IMAGES_FILE_NAME $TARGET_IMAGES_FILE_NAME
 while read source_image; do
   if [[ "$source_image" == *"devtron:"* || "$source_image" == *"hyperion:"* || "$source_image" == *"dashboard:"* || "$source_image" == *"casbin:"* || "$source_image" == *"test:"* ]]
   then
-  SOURCE_REGISTRY="devtronent.azurecr.io"
+  SOURCE_REGISTRY="devtroninc.azurecr.io"
   sed -i "s|${SOURCE_REGISTRY}|${TARGET_REGISTRY}|g" $TARGET_IMAGES_FILE_NAME
   elif [[ "$source_image" == *"workflow-controller:"* || "$source_image" == *"argoexec:"* || "$source_image" == *"argocd:"* ]]
   then
