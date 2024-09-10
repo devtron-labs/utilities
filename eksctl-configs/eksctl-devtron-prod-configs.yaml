@@ -33,7 +33,7 @@ nodeGroups:
       maxPrice: 1.5
       instanceTypes: ["c5a.xlarge", "r5a.xlarge", "m5a.xlarge"]
       onDemandBaseCapacity: 2
-      onDemandPercentageAboveBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 100
     iam:
       withAddonPolicies:
         autoScaler: true
