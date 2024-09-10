@@ -6,7 +6,7 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.27"
+  version: "1.30"
 
 vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
@@ -15,14 +15,16 @@ vpc:
 nodeGroups:
   - name: devtron-nodes
     privateNetworking: true
+    availabilityZones:
+      - ap-south-1a
     desiredCapacity: 2
     minSize: 2
     maxSize: 5
     instancesDistribution:
-      maxPrice: 0.5
+      maxPrice: 1.5
       instanceTypes: ["m6g.xlarge","c6gn.2xlarge","r6g.xlarge"]
       onDemandBaseCapacity: 2
-      onDemandPercentageAboveBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 100
     iam:
       withAddonPolicies:
         autoScaler: true
@@ -66,7 +68,7 @@ nodeGroups:
     minSize: 1
     maxSize: 5
     instancesDistribution:
-      maxPrice: 0.5
+      maxPrice: 1.5
       instanceTypes: ["m6g.xlarge","c6gn.2xlarge","r6g.xlarge"]
       onDemandBaseCapacity: 0
       onDemandPercentageAboveBaseCapacity: 0
