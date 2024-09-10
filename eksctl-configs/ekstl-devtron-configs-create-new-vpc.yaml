@@ -13,6 +13,8 @@ vpc:
 nodeGroups:
   - name: devtron-nodes
     privateNetworking: true
+    availabilityZones:
+      - ap-south-1a
     desiredCapacity: 2
     minSize: 2
     maxSize: 5
