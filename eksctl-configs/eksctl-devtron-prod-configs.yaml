@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.27"
+  version: "1.30"
 
 vpc:
   id: "vpc-xxxxxxx"
