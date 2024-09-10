@@ -19,10 +19,10 @@ nodeGroups:
     minSize: 2
     maxSize: 5
     instancesDistribution:
-      maxPrice: 0.5
+      maxPrice: 1.5
       instanceTypes: ["c5a.xlarge", "r5a.xlarge", "m5a.xlarge"]
       onDemandBaseCapacity: 2
-      onDemandPercentageAboveBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 100
     iam:
       withAddonPolicies:
         autoScaler: true
@@ -65,7 +65,7 @@ nodeGroups:
     minSize: 1
     maxSize: 5
     instancesDistribution:
-      maxPrice: 0.5
+      maxPrice: 1.5
       instanceTypes: ["c5a.xlarge", "r5a.xlarge", "m5a.xlarge"]
       onDemandBaseCapacity: 0
       onDemandPercentageAboveBaseCapacity: 0
