@@ -22,7 +22,7 @@ nodeGroups:
     maxSize: 5
     instancesDistribution:
       maxPrice: 1.5
-      instanceTypes: ["m6g.xlarge"]
+      instanceTypes: ["m6g.xlarge", "c6gn.xlarge", "r6g.xlarge"]
       onDemandBaseCapacity: 2
       onDemandPercentageAboveBaseCapacity: 100
     iam:
@@ -69,7 +69,7 @@ nodeGroups:
     maxSize: 5
     instancesDistribution:
       maxPrice: 1.5
-      instanceTypes: ["m6g.xlarge","c6gn.2xlarge","r6g.xlarge"]
+      instanceTypes: ["m6g.xlarge","c6gn.xlarge","r6g.xlarge"]
       onDemandBaseCapacity: 0
       onDemandPercentageAboveBaseCapacity: 0
     iam:
