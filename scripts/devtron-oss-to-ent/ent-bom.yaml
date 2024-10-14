@@ -9,282 +9,10 @@ global:
     runAsNonRoot: true
   containerRegistry: "quay.io/devtron"
   # The below values can be specified both at global as well as component level
-  nodeSelector: {}
-  tolerations: []
-  imagePullSecrets: []
 # Add any extraManifest to be deployed.
-extraManifests:
-  # Scoop
-  - apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: scoop-devtron
-      namespace: devtroncd
-      labels:
-        app: scoop
-    spec:
-      minReadySeconds: 60
-      progressDeadlineSeconds: 600
-      replicas: 1
-      revisionHistoryLimit: 3
-      selector:
-        matchLabels:
-          app: scoop
-      strategy:
-        rollingUpdate:
-          maxSurge: 25%
-          maxUnavailable: 1
-        type: RollingUpdate
-      template:
-        metadata:
-          labels:
-            app: scoop
-        spec:
-          containers:
-            - env:
-                - name: X-PASS-KEY
-                  value: random-string
-                - name: PASS_KEY
-                  value: random-string
-                - name: RETENTION
-                  value: "10080"
-                - name: TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: devtron-secret
-                      key: ORCH_TOKEN
-              envFrom:
-                - configMapRef:
-                    name: scoop-cm
-              image: devtroninc.azurecr.io/scoop:296d351d-629-24001
-              imagePullPolicy: IfNotPresent
-              name: scoop
-              ports:
-                - containerPort: 8080
-                  name: app
-                  protocol: TCP
-              resources: {}
-              terminationMessagePath: /dev/termination-log
-              terminationMessagePolicy: File
-          imagePullSecrets:
-            - name: devtron-image-pull-enterprise
-          restartPolicy: Always
-          schedulerName: default-scheduler
-          securityContext: {}
-          serviceAccount: sa-scoop
-          serviceAccountName: sa-scoop
-          terminationGracePeriodSeconds: 30
-  # Scoop-service
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      labels:
-        app: scoop
-      name: scoop-service
-      namespace: devtroncd
-    spec:
-      ports:
-        - name: app
-          port: 80
-          protocol: TCP
-          targetPort: app
-      selector:
-        app: scoop
-      sessionAffinity: None
-      type: ClusterIP
-  # Scoop ConfigMap
-  - apiVersion: v1
-    data:
-      CLUSTER_ID: "1"
-      ORCHESTRATOR_URL: http://devtron-service.devtroncd.svc.cluster.local/orchestrator
-    kind: ConfigMap
-    metadata:
-      name: scoop-cm
-      namespace: devtroncd
-  # Scoop ClusterRole
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    metadata:
-      annotations:
-        rbac.authorization.kubernetes.io/autoupdate: "true"
-      name: read-only-cluster-role-scoop
-    rules:
-      - apiGroups:
-          - "*"
-        resources:
-          - "*"
-        verbs:
-          - get
-          - list
-          - watch
-      - apiGroups:
-          - extensions
-        resources:
-          - "*"
-        verbs:
-          - get
-          - list
-          - watch
-      - apiGroups:
-          - apps
-        resources:
-          - "*"
-        verbs:
-          - get
-          - list
-          - watch
-  # Scoop ClusterRoleBinding
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-      name: read-only-user-crb-scoop
-    roleRef:
-      apiGroup: rbac.authorization.k8s.io
-      kind: ClusterRole
-      name: read-only-cluster-role-scoop
-    subjects:
-      - kind: ServiceAccount
-        name: sa-scoop
-        namespace: devtroncd
-  # Scoop ServiceAccount
-  - apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      name: sa-scoop
-      namespace: devtroncd
-  # Casbin
-  - apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      labels:
-        app: casbin
-        release: casbin
-      name: casbin
-      namespace: devtroncd
-    spec:
-      minReadySeconds: 60
-      replicas: 1
-      revisionHistoryLimit: 3
-      selector:
-        matchLabels:
-          app: casbin
-          release: casbin
-      template:
-        metadata:
-          labels:
-            app: casbin
-            release: casbin
-        spec:
-          containers:
-            - env:
-                - name: DEVTRON_APP_NAME
-                  value: casbin
-                - name: POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
-                - name: PG_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: postgresql-postgresql
-                      key: postgresql-password
-              envFrom:
-                - configMapRef:
-                    name: casbin-cm
-              image: devtroninc.azurecr.io/casbin:8a0c2298-11b51149-462-24419
-              imagePullPolicy: IfNotPresent
-              livenessProbe:
-                failureThreshold: 3
-                httpGet:
-                  path: /health
-                  port: 8080
-                initialDelaySeconds: 20
-                periodSeconds: 10
-                successThreshold: 1
-                timeoutSeconds: 5
-              name: casbin
-              ports:
-                - containerPort: 8080
-                  name: http
-                  protocol: TCP
-                - containerPort: 9000
-                  name: app
-                  protocol: TCP
-              readinessProbe:
-                failureThreshold: 3
-                httpGet:
-                  path: /health
-                  port: 8080
-                initialDelaySeconds: 20
-                periodSeconds: 10
-                successThreshold: 1
-                timeoutSeconds: 5
-              resources:
-                limits:
-                  cpu: 0.5m
-                  memory: 500Mi
-                requests:
-                  cpu: 0.5m
-                  memory: 301Mi
-              volumeMounts: []
-          imagePullSecrets:
-            - name: devtron-image-pull-enterprise
-          restartPolicy: Always
-          serviceAccountName: default
-          terminationGracePeriodSeconds: 30
-          volumes: []
-  # Casbin ConfigMap
-  - apiVersion: v1
-    data:
-      PG_ADDR: postgresql-postgresql.devtroncd
-      PG_DATABASE: casbin
-      PG_PORT: "5432"
-      PG_USER: postgres
-    kind: ConfigMap
-    metadata:
-      name: casbin-cm
-      namespace: devtroncd
-  # Casbin Service 
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      labels:
-        app: casbin
-        release: casbin
-      name: casbin-service
-      namespace: devtroncd
-    spec:
-      internalTrafficPolicy: Cluster
-      ipFamilies:
-        - IPv4
-      ipFamilyPolicy: SingleStack
-      ports:
-        - name: http
-          port: 80
-          protocol: TCP
-          targetPort: http
-        - name: app
-          port: 9000
-          protocol: TCP
-          targetPort: app
-      selector:
-        app: casbin
-        release: casbin
-      sessionAffinity: None
-      type: ClusterIP
-    status:
-      loadBalancer: {}
-  # ServiceAccount for chart-sync
-  - apiVersion: v1
-    imagePullSecrets:
-      - name: devtron-image-pull-enterprise
-    kind: ServiceAccount
-    metadata:
-      name: chart-sync
-      namespace: devtroncd
-#
+extraManifests: []
 installer:
-  release: "v0.7.1"
+  release: "v0.7.2"
   registry: ""
   image: "inception"
   tag: "473deaa4-185-21582"
@@ -301,18 +29,22 @@ components:
         ENABLE_CI_JOB: "true"
         GLOBAL_API_TIMEOUT: "60000"
         TRIGGER_API_TIMEOUT: "60000"
-        ENABLE_EXTERNAL_ARGO_CD: "true"
         SERVICE_WORKER_TIMEOUT: "1"
         API_BATCH_SIZE: "30"
         HIDE_GITOPS_OR_HELM_OPTION: "false"
         HIDE_DISCORD: "true"
+        ENABLE_EXTERNAL_ARGO_CD: "true"
         ENABLE_RESOURCE_SCAN: "true"
         ENABLE_RESOURCE_SCAN_V2: "true"
         HIDE_RELEASES: "false"
         HIDE_RESOURCE_WATCHER: "false"
         FEATURE_SCOPED_VARIABLE_ENVIRONMENT_LIST_ENABLE: "true"
+        FEATURE_USER_DEFINED_GITOPS_REPO_ENABLE: "true"
+        FEATURE_STEP_WISE_LOGS_ENABLE: "true"
+        FEATURE_EXTERNAL_FLUX_CD_ENABLE: "true"
+        FEATURE_IMAGE_PROMOTION_ENABLE: "true"
     registry: ""
-    image: "dashboard:8287dc24-97834a34-6-24451"
+    image: "dashboard:40e98e3e-6378aa31-6-25857"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
@@ -321,32 +53,35 @@ components:
     registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "hyperion:3aa7e420-280-23147"
-    cicdImage: "devtron:727b1521-4-24532"
+    image: "hyperion:cad08220-777-26242"
+    cicdImage: "devtron:cad08220-4-26236"
     imagePullPolicy: IfNotPresent
     customOverrides:
       USE_CUSTOM_HTTP_TRANSPORT: "true"
       ASYNC_BUILDX_CACHE_EXPORT: "false"
       BUILDX_CACHE_MODE_MIN: "false"
-      CASBIN_CLIENT_URL: casbin-service.devtroncd:9000
       DEVTRON_INSTALLATION_TYPE: enterprise
       CLONING_MODE: FULL
       SCOPED_VARIABLE_ENABLED: "true"
       SCOPED_VARIABLE_HANDLE_PRIMITIVES: "true"
-      SCOOP_CLUSTER_CONFIG: '{"1":{"serviceName":"scoop-service","passKey":"random-string","namespace":"devtroncd","port":"80"}}'
       DEVTRON_CHART_ARGO_CD_INSTALL_REQUEST_TIMEOUT: "1"
       IS_INTERNAL_USE: "true"
-      STACK_VERSION: "hotfix-v0.15.0"
       # CI_NODE_LABEL_SELECTOR: purpose=ci
       # CI_NODE_TAINTS_KEY: dedicated
       # CI_NODE_TAINTS_VALUE: ci
       # CD_NODE_LABEL_SELECTOR: kubernetes.io/os=linux
       # CD_NODE_TAINTS_KEY: dedicated
       # CD_NODE_TAINTS_VALUE: ci
+      CI_NODE_LABEL_SELECTOR: ""
+      CI_NODE_TAINTS_KEY: ""
+      CI_NODE_TAINTS_VALUE: ""
+      CD_NODE_LABEL_SELECTOR: ""
+      CD_NODE_TAINTS_KEY: ""
+      CD_NODE_TAINTS_VALUE: ""
   # Values for ciRunner
   ciRunner:
     registry: ""
-    image: "ci-runner:3f6badaa-515-24518"
+    image: "ci-runner:b222479a-515-25855"
   # Values for argocdDexServer
   argocdDexServer:
     registry: ""
@@ -359,7 +94,7 @@ components:
     registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "kubelink:e5353d30-310-24320"
+    image: "kubelink:cb9fd38f-310-25879"
     imagePullPolicy: IfNotPresent
     configs:
       ENABLE_HELM_RELEASE_CACHE: "true"
@@ -378,7 +113,7 @@ components:
   # Values for kubewatch
   kubewatch:
     registry: ""
-    image: "kubewatch:e09e780b-370-24238"
+    image: "kubewatch:44c44657-370-25859"
     imagePullPolicy: IfNotPresent
     configs:
       devtroncd_NAMESPACE: "devtron-ci"
@@ -402,7 +137,7 @@ components:
     registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "git-sensor:36b7a68c-535-24240"
+    image: "git-sensor:784ab60a-535-25863"
     imagePullPolicy: IfNotPresent
     serviceMonitor:
       enabled: false
@@ -420,7 +155,7 @@ components:
   # Values for lens
   lens:
     registry: ""
-    image: "lens:d925f072-19-24526"
+    image: "lens:bf3835bb-19-25864"
     imagePullPolicy: IfNotPresent
     configs:
       GIT_SENSOR_PROTOCOL: GRPC
@@ -467,7 +202,9 @@ components:
         DB_NAME: "lens"
   chartSync:
     registry: ""
-    image: chart-sync:a3c9fcd9-341-24267
+    image: chart-sync:74a2134a-341-25854
+    imagePullSecrets:
+      - name: devtron-image-pull-enterprise
 # values for argocd integration
 argo-cd:
   global:
@@ -489,7 +226,7 @@ workflowController:
 security:
   imageScanner:
     registry: ""
-    image: "image-scanner:ce7277d3-112-24517"
+    image: "image-scanner:e3afb65b-112-25414"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   clair:
@@ -498,7 +235,7 @@ security:
       tag: 4.3.6
 # Values for notifier integration
 notifier:
-  image: "notifier:82856462-74-24257"
+  image: "notifier:133c887d-74-26191"
 minio:
   image: "minio:RELEASE.2021-02-14T04-01-33Z"
   mbImage: "minio-mc:RELEASE.2021-02-14T04-28-06Z"
@@ -517,3 +254,31 @@ monitoring:
       image: "k8s-sidecar:1.1.0"
       curlImage: "curl:7.73.0"
       imagePullPolicy: IfNotPresent
+devtronEnterprise:
+  enabled: true
+  casbin:
+    registry: ""
+    image: "casbin:d959d83a-380414d2-462-25861"
+    imagePullSecrets:
+      - name: devtron-image-pull-enterprise
+    imagePullPolicy: IfNotPresent
+    configs:
+      PG_ADDR: postgresql-postgresql.devtroncd
+      PG_DATABASE: casbin
+      PG_PORT: "5432"
+      PG_USER: postgres
+    dbconfig:
+      secretName: postgresql-postgresql
+      keyName: postgresql-password
+    resources: {}
+  scoop:
+    enabled: false
+    registry: ""
+    image: "scoop:296d351d-629-24001"
+    imagePullSecrets:
+      - name: devtron-image-pull-enterprise
+    imagePullPolicy: IfNotPresent
+    resources: {}
+    configs:
+      CLUSTER_ID: "1"
+      ORCHESTRATOR_URL: http://devtron-service.devtroncd.svc.cluster.local/orchestrator

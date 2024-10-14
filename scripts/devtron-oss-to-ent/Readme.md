@@ -48,7 +48,7 @@ For Upgrade:
 
 3. Install Devtron using Helm:
    ```bash
-   helm install devtron devtron/devtron-operator -f ent-values.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry 
+   helm install devtron devtron/devtron-operator -f ent-values.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry --set devtronEnterprise.casbin.registry=$registry --set devtronEnterprise.scoop.registry=$registry
    ```
 
 ## Upgrading Existing OSS Devtron to Enterprise
