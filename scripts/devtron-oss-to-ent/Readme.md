@@ -79,7 +79,7 @@ For Upgrade:
 
 4. Upgrade the Devtron stack:
    ```bash
-   helm upgrade -n devtroncd devtron devtron/devtron-operator --reuse-values -f ent-bom.yaml --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry
+   helm upgrade -n devtroncd devtron devtron/devtron-operator --reuse-values -f ent-bom.yaml --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry --set devtronEnterprise.casbin.registry=$registry --set devtronEnterprise.scoop.registry=$registry
    ```
 
 ## Note:
