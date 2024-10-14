@@ -106,12 +106,6 @@ components:
       # CD_NODE_LABEL_SELECTOR: kubernetes.io/os=linux
       # CD_NODE_TAINTS_KEY: dedicated
       # CD_NODE_TAINTS_VALUE: ci
-      CI_NODE_LABEL_SELECTOR: ""
-      CI_NODE_TAINTS_KEY: ""
-      CI_NODE_TAINTS_VALUE: ""
-      CD_NODE_LABEL_SELECTOR: ""
-      CD_NODE_TAINTS_KEY: ""
-      CD_NODE_TAINTS_VALUE: ""
     serviceMonitor:
       enabled: false
     service:

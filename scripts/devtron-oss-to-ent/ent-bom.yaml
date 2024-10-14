@@ -72,16 +72,10 @@ components:
       # CD_NODE_LABEL_SELECTOR: kubernetes.io/os=linux
       # CD_NODE_TAINTS_KEY: dedicated
       # CD_NODE_TAINTS_VALUE: ci
-      CI_NODE_LABEL_SELECTOR: ""
-      CI_NODE_TAINTS_KEY: ""
-      CI_NODE_TAINTS_VALUE: ""
-      CD_NODE_LABEL_SELECTOR: ""
-      CD_NODE_TAINTS_KEY: ""
-      CD_NODE_TAINTS_VALUE: ""
   # Values for ciRunner
   ciRunner:
     registry: ""
-    image: "ci-runner:b222479a-515-25855"
+    image: "ci-runner:a6594e68-515-26192"
   # Values for argocdDexServer
   argocdDexServer:
     registry: ""
