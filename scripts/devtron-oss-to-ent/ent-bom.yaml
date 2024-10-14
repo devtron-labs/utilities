@@ -66,6 +66,7 @@ components:
       SCOPED_VARIABLE_HANDLE_PRIMITIVES: "true"
       DEVTRON_CHART_ARGO_CD_INSTALL_REQUEST_TIMEOUT: "1"
       IS_INTERNAL_USE: "true"
+      STACK_VERSION: "v0.19.7"
       # CI_NODE_LABEL_SELECTOR: purpose=ci
       # CI_NODE_TAINTS_KEY: dedicated
       # CI_NODE_TAINTS_VALUE: ci
