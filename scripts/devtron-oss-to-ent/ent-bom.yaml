@@ -53,8 +53,8 @@ components:
     registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "hyperion:cad08220-777-26242"
-    cicdImage: "devtron:cad08220-4-26236"
+    image: "hyperion:cc6eae1f-761-26285"
+    cicdImage: "devtron:cc6eae1f-779-26286"
     imagePullPolicy: IfNotPresent
     customOverrides:
       USE_CUSTOM_HTTP_TRANSPORT: "true"
