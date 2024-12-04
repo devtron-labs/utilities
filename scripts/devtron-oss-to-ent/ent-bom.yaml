@@ -106,6 +106,11 @@ components:
         DB_NAME: "git_sensor"
       lens:
         DB_NAME: "lens"
+  chartSync:
+    registry: ""
+    image: chart-sync:00fd28a8-341-27411
+    imagePullSecrets:
+      - name: devtron-image-pull-enterprise
 # values for security integration
 security:
   imageScanner:
