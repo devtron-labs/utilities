@@ -3,12 +3,10 @@ components:
   dashboard:
     config:
       extraConfigs:
+        HIDE_DISCORD: "true"
         HIDE_RELEASES: "true"
         HIDE_RESOURCE_WATCHER: "true"
         FEATURE_SCOPED_VARIABLE_ENVIRONMENT_LIST_ENABLE: "true"
-        FEATURE_USER_DEFINED_GITOPS_REPO_ENABLE: "true"
-        FEATURE_STEP_WISE_LOGS_ENABLE: "true"
-        FEATURE_EXTERNAL_FLUX_CD_ENABLE: "true"
         FEATURE_IMAGE_PROMOTION_ENABLE: "true"
     registry: ""
     image: "dashboard:108fa60c-c809b7c3-6-27606"
