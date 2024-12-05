@@ -3,21 +3,6 @@ components:
   dashboard:
     config:
       extraConfigs:
-        USE_V2: "true"
-        ENABLE_BUILD_CONTEXT: "true"
-        ENABLE_RESTART_WORKLOAD: "true"
-        HIDE_EXCLUDE_INCLUDE_GIT_COMMITS: "false"
-        ENABLE_SCOPED_VARIABLES: "true"
-        ENABLE_CI_JOB: "true"
-        GLOBAL_API_TIMEOUT: "60000"
-        TRIGGER_API_TIMEOUT: "60000"
-        SERVICE_WORKER_TIMEOUT: "1"
-        API_BATCH_SIZE: "30"
-        HIDE_GITOPS_OR_HELM_OPTION: "false"
-        HIDE_DISCORD: "true"
-        ENABLE_EXTERNAL_ARGO_CD: "true"
-        ENABLE_RESOURCE_SCAN: "true"
-        ENABLE_RESOURCE_SCAN_V2: "true"
         HIDE_RELEASES: "true"
         HIDE_RESOURCE_WATCHER: "true"
         FEATURE_SCOPED_VARIABLE_ENVIRONMENT_LIST_ENABLE: "true"
@@ -59,20 +44,6 @@ components:
       - name: devtron-image-pull-enterprise
     image: "kubelink:6017212d-310-27483"
     imagePullPolicy: IfNotPresent
-    configs:
-      ENABLE_HELM_RELEASE_CACHE: "true"
-      USE_CUSTOM_HTTP_TRANSPORT: "true"
-      MANIFEST_FETCH_BATCH_SIZE: "2"
-      NATS_MSG_PROCESSING_BATCH_SIZE: "1"
-      NATS_SERVER_HOST: nats://devtron-nats.devtroncd:4222
-      PG_ADDR: postgresql-postgresql.devtroncd
-      PG_DATABASE: orchestrator
-      PG_LOG_QUERY: "true"
-      PG_PORT: "5432"
-      PG_USER: postgres
-    dbconfig:
-      secretName: postgresql-postgresql
-      keyName: postgresql-password
   # Values for gitsensor
   gitsensor:
     registry: ""
@@ -80,32 +51,10 @@ components:
       - name: devtron-image-pull-enterprise
     image: "git-sensor:00fd28a8-535-27376"
     imagePullPolicy: IfNotPresent
-    serviceMonitor:
-      enabled: false
-    persistence:
-      volumeSize: 2Gi
-    configs:
-      PG_ADDR: postgresql-postgresql.devtroncd
-      PG_USER: postgres
-      COMMIT_STATS_TIMEOUT_IN_SEC: "2"
-      ENABLE_FILE_STATS: "true"
-      USE_GIT_CLI: "true"
   migrator:
     registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "migrator:v4.16.2"
-    kubectlImage: "kubectl:latest"
-    duplicateChartImage: devtron-utils:dup-chart-repo-v1.1.0
-    envVars:
-      devtron:
-        DB_NAME: "orchestrator"
-      casbin:
-        DB_NAME: "casbin"
-      gitsensor:
-        DB_NAME: "git_sensor"
-      lens:
-        DB_NAME: "lens"
   chartSync:
     registry: ""
     image: chart-sync:00fd28a8-341-27411
@@ -130,15 +79,6 @@ devtronEnterprise:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
-    configs:
-      PG_ADDR: postgresql-postgresql.devtroncd
-      PG_DATABASE: casbin
-      PG_PORT: "5432"
-      PG_USER: postgres
-    dbconfig:
-      secretName: postgresql-postgresql
-      keyName: postgresql-password
-    resources: {}
   scoop:
     enabled: false
     registry: ""
@@ -146,7 +86,3 @@ devtronEnterprise:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
-    resources: {}
-    configs:
-      CLUSTER_ID: "1"
-      ORCHESTRATOR_URL: http://devtron-service.devtroncd.svc.cluster.local/orchestrator
