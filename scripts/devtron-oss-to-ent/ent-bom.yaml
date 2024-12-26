@@ -9,13 +9,11 @@ components:
         FEATURE_SCOPED_VARIABLE_ENVIRONMENT_LIST_ENABLE: "true"
         FEATURE_IMAGE_PROMOTION_ENABLE: "true"
         ENABLE_RESOURCE_SCAN_V2: "false"
-    registry: ""
     image: "dashboard:108fa60c-c809b7c3-6-27606"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   # Values for devtron
   devtron:
-    registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     image: "hyperion:cad08220-777-26242"
@@ -35,35 +33,29 @@ components:
       STACK_VERSION: "v0.23.0"
   # Values for ciRunner
   ciRunner:
-    registry: ""
     image: "ci-runner:00fd28a8-515-27413"
   # Values for kubelink
   kubelink:
-    registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     image: "kubelink:6017212d-310-27483"
     imagePullPolicy: IfNotPresent
   # Values for gitsensor
   gitsensor:
-    registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     image: "git-sensor:00fd28a8-535-27376"
     imagePullPolicy: IfNotPresent
   migrator:
-    registry: ""
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   chartSync:
-    registry: ""
     image: chart-sync:00fd28a8-341-27411
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
 # values for security integration
 security:
   imageScanner:
-    registry: ""
     image: "image-scanner:00fd28a8-112-27412"
     configs:
       TRIVY_DB_REPOSITORY: mirror.gcr.io/aquasec/trivy-db
@@ -73,14 +65,12 @@ security:
 devtronEnterprise:
   enabled: true
   casbin:
-    registry: ""
     image: "casbin:5ddc54fe-afca1be6-462-27399"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
   scoop:
     enabled: false
-    registry: ""
     image: "scoop:00fd28a8-629-27404"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
