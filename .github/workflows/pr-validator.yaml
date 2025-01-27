@@ -25,9 +25,9 @@ jobs:
         PRNUM: ${{ github.event.pull_request.number }}
         TITLE: ${{ github.event.pull_request.title }}
         GH_TOKEN: ${{ github.token }}
+        BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
+        HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
-        BASE_REPO="${{ github.event.pull_request.base.repo.full_name }}"
-        HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
         FORKED=false
 
         if [[ "$BASE_REPO" != "$HEAD_REPO" ]]; then
@@ -111,13 +111,12 @@ jobs:
         fi
 
     - name: Check SQL file format and duplicates (if enabled)
-      if: inputs.validate_sql == true
+      if: ${{ inputs.validate_sql }} == "true"
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
       run: |
-        # Get the target (base) and source (head) branches
-        BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-        HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
 
         # Fetch the latest changes from the base and target branches
         git fetch origin "$BASE_BRANCH"
