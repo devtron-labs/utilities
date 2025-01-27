@@ -111,7 +111,7 @@ jobs:
         fi
 
     - name: Check SQL file format and duplicates (if enabled)
-      if: ${{ inputs.validate_sql }} == "true"
+      if: ${{ inputs.validate_sql == 'true' }}
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
