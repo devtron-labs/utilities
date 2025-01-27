@@ -24,7 +24,7 @@ jobs:
         PR_BODY: ${{ github.event.pull_request.body }}
         PRNUM: ${{ github.event.pull_request.number }}
         TITLE: ${{ github.event.pull_request.title }}
-        GH_TOKEN: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         BASE_REPO="${{ github.event.pull_request.base.repo.full_name }}"
         HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
