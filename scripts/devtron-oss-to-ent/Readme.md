@@ -14,20 +14,17 @@ Before proceeding with the installation or upgrade, export the username and toke
 
 ```bash
 export username=XXXXXXXXXXX
-export token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 export registry=XXXXXXXXXXX
 ```
 
-For Fresh Installation:
-    ```
-    vi ent-values.yaml
-    ```
-
-For Upgrade:
+Create Values file
     ```
     vi ent-bom.yaml
     ```
-
+Create service-account for image-pull-secret
+    ```
+    vi sa-image-pull.json
+    ```
 ## Fresh Installation of Devtron Enterprise
 
 1. Add the Devtron Helm repository:
@@ -39,16 +36,12 @@ For Upgrade:
    
 2. Create ImagePullSecrets in devtroncd namespace:
    ```bash
-   kubectl create secret docker-registry devtron-image-pull-enterprise \
-      --namespace devtroncd \
-      --docker-server=$registry \
-      --docker-username=$username \
-      --docker-password=$token
+    kubectl create secret docker-registry devtron-image-pull-enterprise --namespace devtroncd --docker-server=$registry --docker-username=$username --docker-password="$(cat sa-image-pull.json)"
    ```
 
 3. Install Devtron using Helm:
    ```bash
-   helm install devtron devtron/devtron-operator -f ent-values.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry --set devtronEnterprise.casbin.registry=$registry --set devtronEnterprise.scoop.registry=$registry
+   helm install devtron devtron/devtron-operator -f ent-bom.yaml --namespace devtroncd --set installer.modules={cicd} --set argo-cd.enabled=true --set security.enabled=true  --set notifier.enabled=true  --set security.trivy.enabled=true --set monitoring.grafana.enabled=true --set components.dashboard.registry=$registry --set components.devtron.registry=$registry --set components.kubelink.registry=$registry --set components.gitsensor.registry=$registry --set security.imageScanner.registry=$registry --set devtronEnterprise.casbin.registry=$registry --set devtronEnterprise.scoop.registry=$registry
    ```
 
 ## Upgrading Existing OSS Devtron to Enterprise
@@ -70,11 +63,7 @@ For Upgrade:
 
 3. Create ImagePullSecrets in devtroncd namespace:
    ```bash
-   kubectl create secret docker-registry devtron-image-pull-enterprise \
-      --namespace devtroncd \
-      --docker-server=$registry \
-      --docker-username=$username \
-      --docker-password=$token
+    kubectl create secret docker-registry devtron-image-pull-enterprise --namespace devtroncd --docker-server=$registry --docker-username=$username --docker-password="$(cat sa-image-pull.json)"
    ```
 
 4. Upgrade the Devtron stack:
