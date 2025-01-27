@@ -5,8 +5,8 @@ This guide provides instructions for installing Devtron Enterprise edition or up
 ## Pre-requisites for Client:
 1. Helm installed on your cluster
 2. Access to a Kubernetes cluster
-3. If the cluster has restrictions on internet access please ensure that the domain ```*.azurecr.io``` is whitelisted in the firewall.
-4. Username,registry,service-account for image-pull-secret and `ent-bom.yaml` file  provided by the Devtron Team
+3. If the cluster has restrictions on internet access please ensure that the domain ```asia-south1-docker.pkg.dev``` is whitelisted in the firewall.
+4. Username,registry,service-account for image-pull-secret and `ent-bom.yaml` file  provided by the Devtron Team.
 
 ## Setting up credentials and yaml file:
 
