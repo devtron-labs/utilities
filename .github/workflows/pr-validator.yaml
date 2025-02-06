@@ -24,7 +24,8 @@ jobs:
         PR_BODY: ${{ github.event.pull_request.body }}
         PRNUM: ${{ github.event.pull_request.number }}
         TITLE: ${{ github.event.pull_request.title }}
-        GH_TOKEN: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        REPO_TOKEN: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}
         BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
@@ -84,7 +85,7 @@ jobs:
           if [[ "$repo" == "devtron-labs/devtron" || "$repo" == "devtron-labs/devtron-services" || "$repo" == "devtron-labs/dashboard" ]]; then
             status_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
           else
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" "$url")
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" --header "Authorization: Bearer $REPO_TOKEN" "$url")
           fi
         }
 
