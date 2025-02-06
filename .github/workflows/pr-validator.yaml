@@ -83,10 +83,10 @@ jobs:
           local url="$1"
           echo "url -> $url"
           status_code=$(curl -L -s -o /dev/null -w "%{http_code}" \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $REPO_TOKEN" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          "$url")
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $REPO_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$1")
         }
 
         # Get the issue response code
