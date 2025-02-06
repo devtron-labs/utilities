@@ -90,8 +90,14 @@ jobs:
         }
 
         # Get the issue response code
-        fetch_issue_status "$ISSUE_API_URL"
+        # fetch_issue_status "$ISSUE_API_URL"
 
+        status_code=$(curl -L -s -o /dev/null -w "%{http_code}" \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: ***" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "$url")
+  
         echo "STATUS CODE: $status_code"
         # Handle response based on status code
         if [[ "$status_code" -eq 200 ]]; then
