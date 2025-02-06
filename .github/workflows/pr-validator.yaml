@@ -85,7 +85,11 @@ jobs:
           if [[ "$repo" == "devtron-labs/devtron" || "$repo" == "devtron-labs/devtron-services" || "$repo" == "devtron-labs/dashboard" ]]; then
             status_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
           else
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" --header "Authorization: Bearer $REPO_TOKEN" "$url")
+            status_code=$(curl -L -s -o /dev/null -w "%{http_code}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $REPO_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$url"
           fi
         }
 
