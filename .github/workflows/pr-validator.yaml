@@ -95,7 +95,7 @@ jobs:
         echo "$ISSUE_API_URL"
         status_code=$(curl -L -s -o /dev/null -w "%{http_code}" \
           -H "Accept: application/vnd.github+json" \
-          -H "Authorization: ***" \
+          -H "Authorization: Bearer $REPO_TOKEN \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           "$ISSUE_API_URL")
   
