@@ -53,7 +53,7 @@ jobs:
     
         # Define all issue matching patterns
         patterns=(
-          #[0-9]+)"
+            "((Fixes|Resolves) #[0-9]+)"
             "((Fixes|Resolves) https://github.com/devtron-labs/(devtron|sprint-tasks|devops-sprint|devtron-enterprise)/issues/[0-9]+)"
             "((Fixes|Resolves):? https://github.com/devtron-labs/(devtron|sprint-tasks|devops-sprint|devtron-enterprise)/issues/[0-9]+)"
             "((Fixes|Resolves) devtron-labs/devtron#[0-9]+)"
