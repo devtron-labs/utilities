@@ -100,7 +100,7 @@ jobs:
         #   "$ISSUE_API_URL")
         
         status_code=$(curl -s -o /dev/null -w "%{http_code}" \
-          --header "authorization: Bearer $REPO_TOKEN" \
+          --header "authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
           "$ISSUE_API_URL")
   
         echo "STATUS CODE: $status_code"
