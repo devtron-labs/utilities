@@ -110,7 +110,7 @@ jobs:
         else
           echo "Adding extra arguments for authentication: private repository detected."
           response_code=$(curl -s -o /dev/null -w "%{http_code}" \
-          --header "authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
+          --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
           "$issue_api_url")
         fi
 
