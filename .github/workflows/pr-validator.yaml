@@ -92,6 +92,7 @@ jobs:
         # Get the issue response code
         # fetch_issue_status "$ISSUE_API_URL"
 
+        echo "$ISSUE_API_URL"
         status_code=$(curl -L -s -o /dev/null -w "%{http_code}" \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: ***" \
