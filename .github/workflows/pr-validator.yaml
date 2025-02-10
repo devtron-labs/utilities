@@ -76,7 +76,7 @@ jobs:
         }
 
         # Form the issue API URL dynamically
-        ISSUE_API_URL="https://api.github.com/repos/$repo/issues/$issue_num"
+        ISSUE_API_URL="https://api.github.com/repos/$repo/issues/$issue_num" # devtron-labs/devtron-enterprise
 
         # Fetch issue details with curl
         fetch_issue_status() {
