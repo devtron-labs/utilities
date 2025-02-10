@@ -7,6 +7,9 @@ on:
         description: "Check SQL migrations"
         required: true
         type: boolean
+    secrets:
+      GH_PR_VALIDATOR_TOKEN:
+        required: true
 
 jobs:
   pr-validation:
@@ -25,7 +28,6 @@ jobs:
         PRNUM: ${{ github.event.pull_request.number }}
         TITLE: ${{ github.event.pull_request.title }}
         GH_TOKEN: ${{ github.token }}
-        REPO_TOKEN: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}
         BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
