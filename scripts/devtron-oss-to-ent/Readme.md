@@ -72,7 +72,7 @@ Create service-account for image-pull-secret
    ```
 
 ## Note:
-- Ensure you have the `ent-values.yaml` file (for fresh installation) or `ent-bom.yaml` file (for upgrade) provided by the Devtron Team before proceeding with the installation or upgrade.
+- Ensure you have the `ent-bom.yaml` file provided by the Devtron Team before proceeding with the installation or upgrade.
 - The credentials provided for evaluation or trial purposes will expire once the evaluation or trial period concludes. Please make sure to revert your stack to the OSS version or purchase an enterprise subscription before the trial ends.
 - Continuing to use Devtron Enterprise beyond the evaluation period without a valid license may result in a licensing violation.
 
