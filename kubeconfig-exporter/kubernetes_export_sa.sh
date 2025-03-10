@@ -3,12 +3,12 @@ set -e
 set -o pipefail
 
 if [[ $# -lt 2 ]]; then
-  echo "usage: $0 <service_account_name> <namespace> [--devtron-endpoint=<value>] [--devtron-api-token=<value>] [--cluster-name=<value>] [--insecure=<value>] [--server_url=<value>]"  
-  echo "ex: sh ./kubeconfig-exporter/kubernetes_export_sa.sh cd-user cd-user --cluster-name=cluster-name" 
+  echo "usage: $0 <service_account_name> <namespace> [--devtron-endpoint=<value>] [--devtron-api-token=<value>] [--cluster-name=<value>] [--insecure=<value>] [--server_url=<value>]"
+  echo "ex: sh ./kubeconfig-exporter/kubernetes_export_sa.sh cd-user cd-user --cluster-name=cluster-name"
   exit 1
 fi
 
-SERVICE_ACCOUNT_NAME="$1"
+SERVICE_ACCOUNT_NAME=$1
 NAMESPACE="$2"
 shift 2  # Shift past the service account name and namespace
 
@@ -44,28 +44,10 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 
-echo "Service Account Name: $SERVICE_ACCOUNT_NAME"
-echo "Namespace: $NAMESPACE"
-echo "devtron_endpoint: $devtron_endpoint"
-echo "devtron_api_token: $devtron_api_token"
-echo "cluster_name: $cluster_name"
-
-# Additional variables for TLS certs
-tlsClientCert=""
-tlsClientKey=""
-
-# Get tlsClientCert and tlsClientKey if insecure is false
-if [[ "$insecure" == "false" ]]; then
-  read -p "Enter path to tlsClientCert: " tlsClientCert
-  read -p "Enter path to tlsClientKey: " tlsClientKey
-fi
-
-# Further actions to create service account and setup RBAC can go here
-
 KUBECFG_FILE_NAME="tmp/k8s-${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-conf-${RANDOM}.conf"
 TARGET_FOLDER="tmp/"
 SERVER_URL=""
-id="null"
+TOKEN=""
 
 create_cluster_role_binding(){
    echo -e "\\nCreating cluster role binding of name ${SERVICE_ACCOUNT_NAME} with clusterRole cluster-admin"
@@ -104,7 +86,6 @@ create_service_account() {
 
 create_serviceaccount_token(){
     echo -e "\\nCreating service account token in ${NAMESPACE} namespace: ${SERVICE_ACCOUNT_NAME}\n"
-
     TOKEN=$( kubectl create token "${SERVICE_ACCOUNT_NAME}" -n "${NAMESPACE}")
 }
 
@@ -126,7 +107,7 @@ get_secret_name_from_secret() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
     SECRET_NAME=$( kubectl get secret "${SERVICE_ACCOUNT_NAME}" --namespace="${NAMESPACE}" -o=jsonpath={.metadata.name})
     echo "Secret name: ${SECRET_NAME}"
- }
+}
 
 get_secret_name_from_service_account() {
     echo -e "\\nGetting secret of service account ${SERVICE_ACCOUNT_NAME} on ${NAMESPACE}"
@@ -153,9 +134,8 @@ set_kube_config_values() {
     CLUSTER_NAME=$( kubectl config get-contexts "$context" | awk '{print $3}' | tail -n 1)
     echo "Cluster name: ${CLUSTER_NAME}"
 
-   SERVER_URL=$( kubectl config view \
+    SERVER_URL=$( kubectl config view \
     -o jsonpath="{.clusters[?(@.name == \"${CLUSTER_NAME}\")].cluster.server}")
-
 
     # Set up the config
     echo -e "\\nPreparing k8s-${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-conf"
@@ -173,7 +153,7 @@ set_kube_config_values() {
     --token="${TOKEN}"
 
     echo -n "Setting a context entry in kubeconfig..."
-         kubectl config set-context \
+     kubectl config set-context \
     "${SERVICE_ACCOUNT_NAME}-${NAMESPACE}-${CLUSTER_NAME}" \
     --kubeconfig="${KUBECFG_FILE_NAME}" \
     --cluster="${CLUSTER_NAME}" \
@@ -185,12 +165,11 @@ set_kube_config_values() {
     --kubeconfig="${KUBECFG_FILE_NAME}"
 }
 
-
-CLIENT_VERSION=$(  kubectl version -o json | awk -F '"' '/"clientVersion"/ {getline; getline; print $4}' | cut -d '.' -f 2)
+CLIENT_VERSION=$( kubectl version -o json | awk -F '"' '/"clientVersion"/ {getline; getline; print $4}' | cut -d '.' -f 2)
 echo "$CLIENT_VERSION"
 if [[ $CLIENT_VERSION -gt 27 ]]
 then
-    VERSION=$( kubectl version -o json | awk -F '"' '/"serverVersion"/ {getline; getline; print $4}' | cut -d '.' -f 2    )
+    VERSION=$( kubectl version | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
     VERSION=$(expr $VERSION)
 else
     VERSION=$( kubectl version --short | awk '/Server Version: /{print $3}' | cut -d '.' -f 2 )
@@ -218,7 +197,7 @@ else
 fi
 
 echo -e "\\nAll done! Test with:"
-echo "KUBECONFIG=${KUBECFG_FILE_NAME}  kubectl get pods"
+echo "KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods"
 echo "you should not have any permissions by default - you have just created the authentication part"
 echo "You will need to create RBAC permissions"
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
@@ -227,24 +206,22 @@ echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 echo "BEARER TOKEN := ${TOKEN} "
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 
+KUBECONFIG=${KUBECFG_FILE_NAME} kubectl get pods
 
-KUBECONFIG=${KUBECFG_FILE_NAME}  kubectl get pods
-
+# Handle server URL override if provided
 if [[ ! -z "$server_url" ]]; then
-  SERVER_URL="$server_url"   # Adjust port if needed
+  SERVER_URL="$server_url"
 else
-  SERVER_URL="${SERVER_URL}"  # Use provided server URL
+  SERVER_URL="${SERVER_URL}"
 fi
 
+# Add cluster to Devtron if all required parameters are provided
 if [[ ! -z "${devtron_endpoint}" ]] && [[ ! -z "${devtron_api_token}" ]] && [[ ! -z "$cluster_name" ]]; then
-
-    
     json_data=$(jq -n --argjson id null \
         --arg cluster_name "$cluster_name" \
         --arg bearerToken "$TOKEN" \
         --arg server_url "${SERVER_URL}" \
         '{id: $id, insecureSkipTlsVerify: true, cluster_name: $cluster_name, config: {bearer_token: $bearerToken}, active: true, "remoteConnectionConfig": {"connectionMethod": "DIRECT", "proxyConfig": null, "sshConfig": null}, "prometheus_url": "", "prometheusAuth": {"userName": "", "password": "", "tlsClientKey": "", "tlsClientCert": "", "isAnonymous": true}, server_url: $server_url}')
-
 
     res=$(curl -k "${devtron_endpoint}/orchestrator/cluster" \
         -H "Content-Type: application/json" \
@@ -252,12 +229,9 @@ if [[ ! -z "${devtron_endpoint}" ]] && [[ ! -z "${devtron_api_token}" ]] && [[ !
         --data-raw "$json_data")
 
 
-    echo "$cluster_name"
-    echo "$TOKEN"
-    echo "${SERVER_URL}"
-    echo "resvalue: $res"
+    echo "Cluster Name: $cluster_name"
+    echo "API Response: $res"
 
-#elif ([  -z "${devtron_endpoint}" ] || [  -z "${devtron_api_token}" ] && [  -z "$cluster_name" ]) || ([  -z "${devtron_endpoint}" ] && [  -z "${devtron_api_token}" ] || [  -z "$cluster_name" ]); then
 elif ([ ! -z "${devtron_endpoint}" ] && [  -z "${devtron_api_token}" ] && [  -z "$cluster_name" ]) || \
      ([  -z "${devtron_endpoint}" ] && [ ! -z "${devtron_api_token}" ] && [  -z "$cluster_name" ]) || \
      ([  -z "${devtron_endpoint}" ] && [ -z "${devtron_api_token}" ] && [ ! -z "$cluster_name" ]) || \
@@ -268,5 +242,3 @@ elif ([ ! -z "${devtron_endpoint}" ] && [  -z "${devtron_api_token}" ] && [  -z 
     echo "provide all the input to create cluster on devtron"\
 
 fi
-
-
