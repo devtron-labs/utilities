@@ -105,24 +105,23 @@ jobs:
         
         if [[ $repo == "devtron-labs/devtron" || $repo == "devtron-labs/devtron-services" || $repo == "devtron-labs/dashboard" ]]; then
           echo "No extra arguments needed: public repository detected."
-          response=$(curl -s "$issue_api_url")  # Get the response body
-          response_code=$(echo "$response" | jq -r '.status')  # Assume status key or just check HTTP code directly if needed
-
+          response=$(curl -s -w "%{http_code}" "$issue_api_url")  # Get the response body and status code in one go
         else
           echo "Adding extra arguments for authentication: private repository detected."
-          response=$(curl -s --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
+          response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
                   --header "Accept: application/vnd.github+json" "$issue_api_url")
-          response_code=$(echo "$response" | jq -r '.status')  # Assuming status is part of the response
         fi
 
-        echo "Response Code: $response_code"
+        # Extract HTTP status code from the response
+        response_code=$(echo "$response" | tail -n 1)  # Status code is the last line
+        response_body=$(echo "$response" | head -n -1)  # The body is everything except the last line (status code)
 
         echo "Response Code: $response_code"
-        html_url=$(echo "$response" | jq -r '.html_url') 
+        html_url=$(echo "$response_body" | jq -r '.html_url')  # Extract html_url from the JSON response
 
-                
-        if [[ "$html_url" == *"pull-request"* ]]; then
-          echo "The issue URL redirected to a pull-request link, Issue DOESN'T exists."
+        # Check if the html_url contains "pull-request"
+        if [[ "$html_url" == *"pull"* ]]; then
+          echo "The issue URL contains a pull-request link, marking as invalid."
           gh pr comment $PRNUM --body "PR is linked to a pull request URL, which is invalid. Please update the issue link."
           
           # Apply 'Issue-verification-failed' label and remove 'Ready-to-Review' label.
@@ -131,6 +130,7 @@ jobs:
           exit 1
         fi
 
+        # If response_code is 200, proceed with validating the issue
         if [[ "$response_code" -eq 200 ]]; then
           echo "Issue Number: #$issue_num is valid and exists in Repo: $repo."
           gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
@@ -146,6 +146,7 @@ jobs:
           gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
           exit 1
         fi
+
 
     - name: Check SQL file format and duplicates (if enabled)
       if: inputs.validate_sql
