@@ -105,18 +105,32 @@ jobs:
         
         if [[ $repo == "devtron-labs/devtron" || $repo == "devtron-labs/devtron-services" || $repo == "devtron-labs/dashboard" ]]; then
           echo "No extra arguments needed: public repository detected."
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" \
-          "$issue_api_url")
+          response=$(curl -s "$issue_api_url")  # Get the response body
+          response_code=$(echo "$response" | jq -r '.status')  # Assume status key or just check HTTP code directly if needed
 
         else
           echo "Adding extra arguments for authentication: private repository detected."
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" \
-          --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
-          --header "Accept: application/vnd.github+json" \
-          "$issue_api_url")
+          response=$(curl -s --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
+                  --header "Accept: application/vnd.github+json" "$issue_api_url")
+          response_code=$(echo "$response" | jq -r '.status')  # Assuming status is part of the response
         fi
 
         echo "Response Code: $response_code"
+
+        echo "Response Code: $response_code"
+        html_url=$(echo "$response" | jq -r '.html_url') 
+
+                
+        if [[ "$html_url" == *"pull-request"* ]]; then
+          echo "The issue URL redirected to a pull-request link, Issue DOESN'T exists."
+          gh pr comment $PRNUM --body "PR is linked to a pull request URL, which is invalid. Please update the issue link."
+          
+          # Apply 'Issue-verification-failed' label and remove 'Ready-to-Review' label.
+          gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
+          gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
+          exit 1
+        fi
+
         if [[ "$response_code" -eq 200 ]]; then
           echo "Issue Number: #$issue_num is valid and exists in Repo: $repo."
           gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
