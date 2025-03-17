@@ -48,19 +48,20 @@ jobs:
             gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
             gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
           else
-            curl -L \
+            # Add label
+            response_add_label=$(curl -s -w "%{http_code}" \
               -X POST \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              https://api.github.com/repos/devtron-labs/${{ github.event.repository.name }}/issues/${{ github.event.pull_request.number }}/labels \
-              -d '{"labels":["PR:Ready-to-Review"]}'
+              "https://api.github.com/repos/devtron-labs/${{ github.event.repository.name }}/issues/${{ github.event.pull_request.number }}/labels" \
+              -d '{"labels":["PR:Ready-to-Review"]}')
 
-
-
-            curl -X DELETE \
+            # Remove label
+            response_remove_label=$(curl -s -w "%{http_code}" \
+              -X DELETE \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              https://api.github.com/repos/devtron-labs/${{ github.event.repository.name }}/issues/${{ github.event.pull_request.number }}/labels/PR:Issue-verification-failed"
+              "https://api.github.com/repos/devtron-labs/${{ github.event.repository.name }}/issues/${{ github.event.pull_request.number }}/labels/PR:Issue-verification-failed")
           fi
           exit 0
         fi
