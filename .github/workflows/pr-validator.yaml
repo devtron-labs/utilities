@@ -21,7 +21,7 @@ jobs:
     - name: Set up jq (for parsing JSON)
       run: sudo apt-get install -y jq
     
-    - name: Debug: Print token
+    - name: Debug Print token
       run: echo "Token value: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" #REMOVE AFTER DEBUGGING
 
     - name: PR Validation Script
