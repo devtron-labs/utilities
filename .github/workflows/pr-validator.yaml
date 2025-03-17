@@ -17,6 +17,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+    
+    - name: Set up GitHub CLI
+      uses: cli/cli-action@v2
 
     - name: Set up jq (for parsing JSON)
       run: sudo apt-get install -y jq
