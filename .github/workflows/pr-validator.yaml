@@ -27,19 +27,18 @@ jobs:
         PR_BODY: ${{ github.event.pull_request.body }}
         PRNUM: ${{ github.event.pull_request.number }}
         TITLE: ${{ github.event.pull_request.title }}
-        GH_TOKEN: ${{ github.token }}
         GH_PR_VALIDATOR_TOKEN: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}
         BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
         echo "base or target repo : ${{ github.event.pull_request.base.repo.full_name }}"
         echo "head or source repo : ${{ github.event.pull_request.head.repo.full_name }}"
-
+        echo "$GH_PR_VALIDATOR_TOKEN" | gh auth login --with-token
+        
         if [[ ${{ github.event.pull_request.head.repo.full_name }} == ${{ github.event.pull_request.base.repo.full_name }} ]]; then
           export forked=false
         else
           export forked=true
-          echo "$GH_PR_VALIDATOR_TOKEN" | gh auth login --with-token
         fi
 
         set -x    
