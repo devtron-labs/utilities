@@ -30,7 +30,7 @@ jobs:
         BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
-        echo "Token value: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}"
+        echo "Token value: $GH_PR_VALIDATOR_TOKEN"
         echo "base or target repo : ${{ github.event.pull_request.base.repo.full_name }}"
         echo "head or source repo : ${{ github.event.pull_request.head.repo.full_name }}"
         echo "$GH_PR_VALIDATOR_TOKEN" | gh auth login --with-token
