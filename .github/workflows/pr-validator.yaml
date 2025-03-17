@@ -21,9 +21,6 @@ jobs:
     - name: Set up jq (for parsing JSON)
       run: sudo apt-get install -y jq
     
-    - name: Debug Print token
-      run: echo "Token value: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" #REMOVE AFTER DEBUGGING
-
     - name: PR Validation Script
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
@@ -33,6 +30,7 @@ jobs:
         BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
+        echo "Token value: ${{ secrets.GH_PR_VALIDATOR_TOKEN }}"
         echo "base or target repo : ${{ github.event.pull_request.base.repo.full_name }}"
         echo "head or source repo : ${{ github.event.pull_request.head.repo.full_name }}"
         echo "$GH_PR_VALIDATOR_TOKEN" | gh auth login --with-token
