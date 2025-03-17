@@ -125,7 +125,7 @@ jobs:
           response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
                   --header "Accept: application/vnd.github+json" "$issue_api_url")
         fi
-{"labels":["PR:Ready-to-Review"]}
+
         # Extract HTTP status code from the response
         response_code=$(echo "$response" | tail -n 1)  # Status code is the last line
         response_body=$(echo "$response" | head -n -1)  # The body is everything except the last line (status code)
