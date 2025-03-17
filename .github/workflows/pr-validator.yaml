@@ -9,7 +9,6 @@ on:
         type: boolean
     secrets:
       GH_PR_VALIDATOR_TOKEN:
-        required: true
 
 jobs:
   pr-validation:
