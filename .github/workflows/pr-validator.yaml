@@ -30,10 +30,8 @@ jobs:
         BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
-        echo "Token value: $GH_PR_VALIDATOR_TOKEN"
         echo "base or target repo : ${{ github.event.pull_request.base.repo.full_name }}"
         echo "head or source repo : ${{ github.event.pull_request.head.repo.full_name }}"
-        echo "$GH_PR_VALIDATOR_TOKEN" | gh auth login --with-token
 
         if [[ ${{ github.event.pull_request.head.repo.full_name }} == ${{ github.event.pull_request.base.repo.full_name }} ]]; then
           export forked=false
@@ -46,8 +44,24 @@ jobs:
         if [[ "$TITLE" =~ ^(doc:|docs:|chore:|misc:|Release:|release:|Sync:|sync:) ]]; then
           echo "Skipping validation for docs/chore PR."
           echo "PR NUMBER-: $PRNUM "
-          gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
-          gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
+          if [[ "$forked" == "false" ]]; then
+            gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
+            gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
+          else
+            curl -L \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/devtron-labs/${{ github.event.repository.name }}/issues/${{ github.event.pull_request.number }}/labels \
+              -d '{"labels":["PR:Ready-to-Review"]}'
+
+
+
+            curl -X DELETE \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/devtron-labs/${{ github.event.repository.name }}/issues/${{ github.event.pull_request.number }}/labels/PR:Issue-verification-failed"
+          fi
           exit 0
         fi
     
@@ -111,7 +125,7 @@ jobs:
           response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
                   --header "Accept: application/vnd.github+json" "$issue_api_url")
         fi
-
+{"labels":["PR:Ready-to-Review"]}
         # Extract HTTP status code from the response
         response_code=$(echo "$response" | tail -n 1)  # Status code is the last line
         response_body=$(echo "$response" | head -n -1)  # The body is everything except the last line (status code)
