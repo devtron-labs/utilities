@@ -9,9 +9,6 @@ on:
         type: boolean
     secrets:
       GH_PR_VALIDATOR_TOKEN:
-permissions:
-  issues: write     # Required to add/remove labels on PRs
-  pull-requests: write   # Allow the workflow to modify pull requests (e.g., adding labels or comments)
 
 jobs:
   pr-validation:
