@@ -104,6 +104,7 @@ nodeGroups:
             memory: "200Mi"
             ephemeral-storage: "1Gi"
         kubeReservedCgroup: "/kube-reserved"
+        cpuManagerPolicy: "static"
         systemReserved:
             cpu: "200m"
             memory: "200Mi"
@@ -113,3 +114,4 @@ nodeGroups:
             nodefs.available: "10%"
         featureGates:
             RotateKubeletServerCertificate: true
+            CPUManager: true
