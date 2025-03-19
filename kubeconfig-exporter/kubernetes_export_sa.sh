@@ -16,7 +16,7 @@ devtron_endpoint=""
 devtron_api_token=""
 cluster_name=""
 server_url=""
-insecure="true"  # Default value for --insecure
+insecure=true  # Default value for --insecure
 
 # Parse optional arguments
 while [[ "$#" -gt 0 ]]; do
@@ -220,7 +220,7 @@ if [[ ! -z "${devtron_endpoint}" ]] && [[ ! -z "${devtron_api_token}" ]] && [[ !
 
     json_data='{
       "id": null,
-      "insecureSkipTlsVerify": true,
+      "insecureSkipTlsVerify": '$insecure',
       "cluster_name": "'"${cluster_name}"'",
       "config": {
         "bearer_token": "'"${TOKEN}"'"
@@ -242,10 +242,12 @@ if [[ ! -z "${devtron_endpoint}" ]] && [[ ! -z "${devtron_api_token}" ]] && [[ !
       "server_url": "'"${SERVER_URL}"'"
     }'
 
+
     res=$(curl -k "${devtron_endpoint}/orchestrator/cluster" \
         -H "Content-Type: application/json" \
         -H "token: $devtron_api_token" \
         --data-raw "$json_data")
+
 
     echo "Cluster Name: $cluster_name"
     echo "API Response: $res"
