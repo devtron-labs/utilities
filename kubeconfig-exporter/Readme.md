@@ -26,3 +26,13 @@ git clone https://github.com/devtron-labs/utilities.git
 ```bash
 bash kubernetes_export_sa.sh cd-user devtroncd
 ```
+4. If you want to automatically add the cluster to devtron, run the following command
+```bash
+bash kubernetes_export_sa.sh cd-user devtroncd [--devtron-endpoint=<value>] [--devtron-api-token=<value>][--cluster-name=<value>] [--insecure=<value>] [--server_url=<value>]
+```
+Parameter Descriptions:
+- devtron-endpoint: The endpoint where Devtron is running. For example - https://devtron.example.com
+- devtron-api-token: API token for authentication with Devtron. You can generate it from Global configurations > Authorization > API Tokens
+- cluster-name: The name of the Kubernetes cluster to be added to Devtron.
+- server_url: The API server URL of the Kubernetes cluster. Recommended to map the url with a DNS endpoint.
+- insecure (optional, default: true): Set to false to specify TLS creds for the api server url.
