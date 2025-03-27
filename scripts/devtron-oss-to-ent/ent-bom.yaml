@@ -50,7 +50,7 @@ components:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   chartSync:
-    image: chart-sync:289d080a-341-30392
+    image: chart-sync:2168a861-341-31218
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
 # values for security integration
