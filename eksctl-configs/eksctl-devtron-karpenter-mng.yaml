@@ -1,0 +1,36 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name:  devtron-cluster
+  region: ap-south-1
+  version: "1.32"
+managedNodeGroups:
+  - name: devtron-managed-ng
+    privateNetworking: true
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 2
+    instanceTypes: ["c6g.large"]
+    labels: {}
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::XXXXXXXXX:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
+    ssh:
+      allow: true
+      publicKeyName: "infra"
+      enableSsm: true
+    volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
+    asgSuspendProcesses: ["AZRebalance"]
+    tags:
+      Component : devtron
