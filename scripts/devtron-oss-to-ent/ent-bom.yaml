@@ -44,7 +44,7 @@ components:
   gitsensor:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "git-sensor:f4de0354-535-30999"
+    image: "git-sensor:2168a861-535-31221"
     imagePullPolicy: IfNotPresent
   migrator:
     imagePullSecrets:
