@@ -5,6 +5,8 @@ metadata:
   name:  devtron-cluster
   region: ap-south-1
   version: "1.32"
+accessConfig:
+  authenticationMode: API_AND_CONFIG_MAP
 managedNodeGroups:
   - name: devtron-managed-ng
     privateNetworking: true
