@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.30"
+  version: "1.31"
 
 vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
@@ -34,10 +34,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::xxxxxxxxxxxxx:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "infra"
     volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
     asgSuspendProcesses: ["AZRebalance"]
     tags:
       Component : cicd
@@ -79,10 +82,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::xxxxxxxxxxxxx:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "infra"
     volumeSize: 100
+    volumeType: gp3
+    volumeEncrypted: true
     asgSuspendProcesses: ["AZRebalance"]
     tags:
       Component : cicd
