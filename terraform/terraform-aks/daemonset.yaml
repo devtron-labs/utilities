@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nodes-update
+  namespace: kube-system
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nodes-update
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "watch", "list", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nodes-update
+subjects:
+- kind: ServiceAccount
+  name: nodes-update
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: nodes-update
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: remove-spot-taints
+  namespace: kube-system
+  labels:
+    k8s-app: remove-spot-taints
+spec:
+  selector:
+    matchLabels:
+      name: remove-spot-taints
+  template:
+    metadata:
+      labels:
+        name: remove-spot-taints
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.azure.com/scalesetpriority
+                operator: In
+                values:
+                  - spot 
+      serviceAccountName: nodes-update
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: dedicated
+        operator: Exists
+        effect: NoSchedule
+      - key: node.kubernetes.io/not-ready
+        effect: NoExecute
+        operator: Exists
+      containers:
+      - name: nodes-update
+        image: bitnami/kubectl:latest
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        command: ["/bin/sh", "-c", "echo Node is $NODE_NAME && kubectl taint nodes $NODE_NAME kubernetes.azure.com/scalesetpriority=spot:NoSchedule- && tail -f /dev/null"]
+      terminationGracePeriodSeconds: 30
