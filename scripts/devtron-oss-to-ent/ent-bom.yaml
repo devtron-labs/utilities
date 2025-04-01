@@ -18,7 +18,7 @@ components:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     image: "hyperion:cad08220-777-26242"
-    cicdImage: "devtron:2db84460-4-31225"
+    cicdImage: "devtron:8994a33e-4-31347"
     imagePullPolicy: IfNotPresent
     customOverrides:
       USE_CUSTOM_HTTP_TRANSPORT: "true"
