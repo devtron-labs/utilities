@@ -10,12 +10,11 @@ module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "~> 20.24"
 
-  count = var.eks_auto_mode ? 0 : 1  # Disable when eks_auto_mode is true
-
   cluster_name          = module.eks.cluster_name
   enable_v1_permissions = true
   namespace             = local.namespace
 
+  # Name needs to match role name passed to the EC2NodeClass
   node_iam_role_use_name_prefix   = false
   node_iam_role_name              = local.name
   create_pod_identity_association = false
@@ -30,8 +29,6 @@ module "karpenter" {
 ################################################################################
 
 resource "helm_release" "karpenter" {
-  count = var.eks_auto_mode ? 0 : 1  # Disable when eks_auto_mode is true
-
   name                = "karpenter"
   namespace           = local.namespace
   create_namespace    = true
@@ -49,7 +46,7 @@ resource "helm_release" "karpenter" {
     settings:
       clusterName: ${module.eks.cluster_name}
       clusterEndpoint: ${module.eks.cluster_endpoint}
-      interruptionQueue: ${module.karpenter[0].queue_name}
+      interruptionQueue: ${module.karpenter.queue_name}
     tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
@@ -58,7 +55,7 @@ resource "helm_release" "karpenter" {
         effect: NoSchedule
     serviceAccount:
       annotations:
-        eks.amazonaws.com/role-arn: ${module.karpenter[0].iam_role_arn}
+        eks.amazonaws.com/role-arn: ${module.karpenter.iam_role_arn}
     webhook:
       enabled: false
     EOT
