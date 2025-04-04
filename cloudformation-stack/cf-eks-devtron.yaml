@@ -1,0 +1,218 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create an EKS cluster with two nodegroups and install Devtron
+
+Parameters:
+  ClusterName:
+    Type: String
+    Description: Name for the EKS cluster
+
+  ClusterVersion:
+    Type: String
+    Description: Version of the EKS cluster (e.g., 1.26)
+
+  ClusterRegion:
+    Type: String
+    Description: AWS region for the EKS cluster (e.g., ap-south-1)
+
+  VpcCIDR:
+    Type: String
+    Description: CIDR range for the VPC (e.g., 10.30.0.0/16)
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 Key Pair for SSH access
+
+  DevtronODInstanceTypes:
+    Type: List<AWS::EC2::InstanceType>
+    Description: List of instance types for devtron-od-nodes (e.g., ["c5a.xlarge", "r5a.xlarge", "m5a.xlarge"])
+
+  DevtronCIInstanceTypes:
+    Type: List<AWS::EC2::InstanceType>
+    Description: List of instance types for devtron-ci-nodes (e.g., ["c5a.xlarge", "r5a.xlarge", "m5a.xlarge"])
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      Version: !Ref ClusterVersion
+      RoleArn: !GetAtt EKSClusterServiceRole.Arn
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !GetAtt EKSClusterSecurityGroup.GroupId
+
+  EKSClusterServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+  EKSClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the EKS cluster
+      VpcId: !Ref VPC
+
+  DevtronODNodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodegroupName: devtron-od-nodes
+      InstanceTypes: !Ref DevtronODInstanceTypes
+      ScalingConfig:
+        DesiredSize: 2
+        MinSize: 2
+        MaxSize: 5
+        OnDemandBaseCapacity: 2
+        OnDemandPercentageAboveBaseCapacity: 0
+      Labels:
+        nodegroup-type: devtron-od-nodes
+      Tags:
+        - Key: Component
+          Value: cicd
+      Iam:
+        WithAddonPolicies:
+          AutoScaler: true
+        AttachPolicyARNs:
+          - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+          - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+          - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+          - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+          - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      Ssh:
+        Allow: true
+        PublicKeyName: !Ref KeyName
+      VolumeSize: 50
+      KubeletExtraConfig:
+        kubeReserved:
+          cpu: "200m"
+          memory: "200Mi"
+          ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        cpuManagerPolicy: "static"
+        systemReserved:
+          cpu: "200m"
+          memory: "200Mi"
+          ephemeral-storage: "1Gi"
+        evictionHard:
+          memory.available: "200Mi"
+          nodefs.available: "10%"
+        featureGates:
+          RotateKubeletServerCertificate: true
+
+  DevtronCINodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodegroupName: devtron-ci-nodes
+      InstanceTypes: !Ref DevtronCIInstanceTypes
+      ScalingConfig:
+        DesiredSize: 1
+        MinSize: 1
+        MaxSize: 5
+        OnDemandBaseCapacity: 0
+        OnDemandPercentageAboveBaseCapacity: 0
+        MaxPrice: 0.5
+      Labels:
+        purpose: ci
+        nodegroup-type: devtron-ci-nodes
+      Tags:
+        - Key: Component
+          Value: cicd
+      Taints:
+        - key: dedicated
+          value: "ci:NoSchedule"
+          effect: NoSchedule    
+      Iam:
+        WithAddonPolicies:
+          AutoScaler: true
+        AttachPolicyARNs:
+          - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+          - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+          - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+          - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+          - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      Ssh:
+        Allow: true
+        PublicKeyName: !Ref KeyName
+      VolumeSize: 100
+      KubeletExtraConfig:
+        kubeReserved:
+          cpu: "200m"
+          memory: "200Mi"
+          ephemeral-storage: "1Gi"
+        kubeReservedCgroup: "/kube-reserved"
+        systemReserved:
+          cpu: "200m"
+          memory: "200Mi"
+          ephemeral-storage: "1Gi"
+        evictionHard:
+          memory.available: "200Mi"
+          nodefs.available: "10%"
+        featureGates:
+          RotateKubeletServerCertificate: true
+
+  InstallDevtronFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.8
+      Handler: index.handler
+      Role: !GetAtt InstallDevtronFunctionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import subprocess as sp
+
+          eks_client = boto3.client('eks')
+
+          def handler(event, context):
+              cluster_name = event['ResourceProperties']['ClusterName']
+
+              sp.run(['aws', 's3', 'cp', 's3://devtron-install.sh/devtron-install.sh', '/tmp/devtron-install.sh'])
+              sp.run(['chmod', '+x', '/tmp/devtron-install.sh'])
+              sp.run(['/tmp/devtron-install.sh', cluster_name])
+
+      Timeout: 300 # Set the timeout as per your installation requirements
+
+  InstallDevtronFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: InstallDevtronFunctionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  InstallDevtronCustomResource:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt InstallDevtronFunction.Arn
+      ClusterName: !Ref EKSCluster
+
+Outputs:
+  ClusterNameOutput:
+    Description: EKS Cluster Name
+    Value: !Ref EKSCluster
+
+  ClusterVersionOutput:
+    Description: EKS Cluster Version
+    Value: !Ref ClusterVersion
