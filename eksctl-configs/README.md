@@ -52,8 +52,8 @@ eksctl utils write-kubeconfig --cluster <cluster-name> --region <region>
 
 ### Generating token based Kubeconfig
 
-Ensure that you have kubeconfig already set and are able to access the cluster. Generate the cluster-admin token based kube-config. Please ensure that you have `kubectl` and `jq` installed on the bastion that you’re running the commands on.
+Ensure that you have kubeconfig already set and are able to access the cluster. Generate the cluster-admin token based kube-config. Please ensure that you have `kubectl` installed on the bastion that you’re running the commands on.
 
 ```
-curl -O https://raw.githubusercontent.com/devtron-labs/utilities/main/kubeconfig-exporter/kubernetes_kubeconfig_sa.sh && bash kubernetes_kubeconfig_sa.sh cd-user devtroncd https://raw.githubusercontent.com/devtron-labs/utilities/main/kubeconfig-exporter/clusterrole.yaml
+curl -o https://raw.githubusercontent.com/devtron-labs/utilities/main/kubeconfig-exporter/kubernetes_export_sa.sh && bash kubernetes_export_sa.sh cd-user devtroncd
 ```
