@@ -4,7 +4,10 @@ kind: ClusterConfig
 metadata:
   name:  devtron-cluster
   region: ap-south-1
-  version: "1.30"
+  version: "1.31"
+  
+accessConfig:
+  authenticationMode: CONFIG_MAP
 
 vpc:
   id: "vpc-xxxxxxx"
@@ -45,10 +48,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::xxxxxxxxxxxxx:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "infra"
     volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
     tags:
       Component : cicd
     kubeletExtraConfig:
@@ -89,10 +95,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::xxxxxxxxxxxxx:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "infra"
     volumeSize: 100
+    volumeType: gp3
+    volumeEncrypted: true
     tags:
       Component : cicd
     labels: {purpose: ci}
