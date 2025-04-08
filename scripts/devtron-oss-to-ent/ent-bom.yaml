@@ -33,7 +33,7 @@ components:
       STACK_VERSION: "31"
   # Values for ciRunner
   ciRunner:
-    image: "ci-runner:30f26a6c-515-31462"
+    image: "ci-runner:b5a32da6-515-31661"
   # Values for kubelink
   kubelink:
     imagePullSecrets:
