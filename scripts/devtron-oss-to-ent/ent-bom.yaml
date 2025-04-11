@@ -38,7 +38,7 @@ components:
   kubelink:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "kubelink:2168a861-310-31214"
+    image: "kubelink:2380bb87-310-31853"
     imagePullPolicy: IfNotPresent
   # Values for gitsensor
   gitsensor:
