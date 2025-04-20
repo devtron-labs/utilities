@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: devtron-pre-upgrade
+  namespace: devtroncd
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 7200
+  template:
+    spec:
+      tolerations:
+        - operator: "Exists"
+      containers:
+      - name: pre-upgrade
+        image: quay.io/devtron/kubectl
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            kubectl create cm devtron-postgres-upgrade -n devtroncd &> /dev/null
+            STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
+            PVC_SIZE=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.resources.requests.storage}')
+
+            SIZE_VALUE=$(echo $PVC_SIZE | sed 's/[^0-9]*//g')
+
+            NEW_SIZE_VALUE=$((SIZE_VALUE + 5))
+
+            NEW_PVC_SIZE="${NEW_SIZE_VALUE}Gi"
+
+            cat <<EOF > devtron-db-upgrade-pvc.yaml
+            apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: devtron-db-upgrade-pvc
+              namespace: devtroncd
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              storageClassName: ${STORAGE_CLASS}
+              resources:
+                requests:
+                  storage: ${NEW_PVC_SIZE}
+            EOF
+            echo "Creating PVC and Jobs for the Upgrade initialization Process"
+            kubectl apply -f devtron-db-upgrade-pvc.yaml
+            sleep 5 
+            kubectl apply -f https://raw.githubusercontent.com/akshatsinha007/akshat.sinha/refs/heads/main/devtron-upgrade-init.yaml
+            echo "[$(date)] ✅ INFO: devtron-upgrade-init Job has been applied"
+            echo "Please run "kubectl logs -f job/devtron-upgrade-init -n devtroncd" and keep monitoring the logs"
+        envFrom:
+        - configMapRef:
+            name: devtron-common-cm
+      restartPolicy: Never
+      serviceAccountName: devtron

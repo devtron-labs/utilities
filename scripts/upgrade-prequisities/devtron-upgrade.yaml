@@ -1,0 +1,251 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: devtron-upgrade
+  namespace: devtroncd
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 7200
+  template:
+    spec:
+      tolerations:
+        - operator: "Exists"
+      containers:
+      - name: database-upgrader
+        image: mirror.gcr.io/irawal007/kubectl:28f6c5c6-8489-66897
+        env:
+          - name: PGHOST
+            value: postgresql-postgresql.devtroncd
+          - name: PGPORT
+            value: "5432"
+          - name: PGUSER
+            value: postgres 
+          - name: PGPASSWORD 
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-postgresql
+                key: postgresql-password
+          - name: BACKUP_DIR
+            value: /backup-data 
+          - name: BACKUP_FILENAME
+            value: backup.sql 
+          - name: DB_TO_CHECK
+            value: clairv4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            BACKUP_TARGET="${BACKUP_DIR}/${BACKUP_FILENAME}"
+            
+            echo "INFO: Verifying if first checkpoint was crossed or not"
+            
+            value=$(kubectl get configmap devtron-postgres-upgrade -n devtroncd -o jsonpath="{.data.POSTGRES_BACKED_UP}" 2>/dev/null)
+            
+            if [[ "$value" == "true" ]]; then
+              echo "[$(date)] INFO: Checking if the first prerequisite step was successful or not"
+              if [ -s "${BACKUP_TARGET}" ]; then
+                echo "[$(date)] Backup file '${BACKUP_TARGET}' found :)"
+                ls -lh "${BACKUP_TARGET}"
+              else
+                echo "[$(date)] ERROR: Backup file '${BACKUP_TARGET}' was not found!"
+                kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR2": "Step-2: BACKUP FILE NOT FOUND IN RESTORE JOB"}}'
+                exit 1
+              fi
+            else
+              echo "[$(date)] ERROR: Pre-requisite not completed please check the <doclink> and follow the steps from the start."
+              kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR3": "Step-2: FIRST JOB WAS NOT SUCCESSFUL"}}'
+              exit 1
+            fi
+
+            PVC_SIZE=$(kubectl get pvc  -n devtroncd data-postgresql-postgresql-0 -o jsonpath='{.spec.resources.requests.storage}')
+
+            curl -LO https://raw.githubusercontent.com/akshatsinha007/akshat.sinha/refs/heads/main/postgresql.yaml
+
+            echo "[$(date)] INFO: Getting StorageClass from existing Postgresql PVC"
+
+            STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
+
+            echo "StorageClass to be used: $STORAGE_CLASS "
+
+            yq eval-all -P '
+              select(.kind == "StatefulSet") |= (
+                .spec.volumeClaimTemplates[] |=
+                  select(.metadata.name == "devtron") |=
+                    .spec.storageClassName = "'"$STORAGE_CLASS"'"
+              )
+            ' postgresql.yaml > postgresql-sc.yaml
+
+            touch k8s-patch.yaml
+            export PATCH_FILE="k8s-patch.yaml"
+
+            echo "[$(date)] INFO: Fetching nodeSelectors/tolerations on postgresql if any..." >&2
+
+            PATCH_JSON_DATA=$(kubectl get statefulset postgresql-postgresql -n devtroncd -o json | jq -c '
+              (.spec.template.spec) as $podSpec |
+              (if $podSpec.nodeSelector and ($podSpec.nodeSelector | length > 0) then {nodeSelector: $podSpec.nodeSelector} else {} end) +
+              (if $podSpec.tolerations and ($podSpec.tolerations | length > 0) then {tolerations: $podSpec.tolerations} else {} end)
+            ')
+
+            if [ $? -ne 0 ] || [ -z "$PATCH_JSON_DATA" ]; then
+                echo "[ERROR] Failed to get postgresql-postgresql statefulset or extract constraints " >&2
+                kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR4": "Step-2: Unable to check for nodeSelectors,tolerations in pod"}}'
+                exit 1
+            fi
+
+            if [[ "$PATCH_JSON_DATA" == "{}" ]]; then
+                echo "[$(date)] INFO: No nodeSelector or tolerations found." >&2
+                echo "Skipping patch operations"
+                sleep 3
+                
+                echo "Removing the Postgresql_11"
+                kubectl delete svc -n devtroncd postgresql-postgresql postgresql-postgresql-headless postgresql-postgresql-metrics
+                kubectl delete sts postgresql-postgresql -n devtroncd
+
+                PV_NAME=$(kubectl get pv | grep "data-postgresql-postgresql-0" | awk '{print $1}')
+                kubectl delete pvc data-postgresql-postgresql-0 -n devtroncd
+  
+                while kubectl get pvc data-postgresql-postgresql-0 -n devtroncd &> /dev/null; do
+                  echo "Waiting for PVC data-postgresql-postgresql-0 to be deleted..."
+                  sleep 5
+                done
+
+                echo "PVC data-postgresql-postgresql-0 deleted"
+
+                kubectl delete pv $(kubectl get pv | grep data-postgresql-postgresql-0 | awk '{print $1}')
+                
+                while kubectl get pv "$PV_NAME" &> /dev/null; do
+                  echo "Waiting for PV $PV_NAME to be deleted..."
+                  sleep 5
+                done
+            
+                echo "PV $PV_NAME Deleted"
+
+                sleep 15
+
+                kubectl apply -f postgresql-sc.yaml
+              else
+                echo "[$(date)] INFO: Constraints found. Modifying and applying target YAML..." >&2
+                echo "$PATCH_JSON_DATA" | yq eval - > "$PATCH_FILE"
+                if [ ! -s "$PATCH_FILE" ]; then
+                    echo "[ERROR] Failed to create intermediate patch file (${PATCH_FILE})." >&2
+                    kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR5": "Step-2: Unable to create patch file for nodeSelectors,tolerations"}}'
+                    exit 1
+                fi
+                echo "[$(date)] INFO: Merging constraints into StatefulSet within postgresql.yaml..." >&2
+                yq eval-all -P '
+                  select(.kind == "StatefulSet") |= (
+                    .spec.template.spec = (.spec.template.spec // {}) * load(env(PATCH_FILE))
+                  )
+                ' postgresql-sc.yaml > postgresql-final.yaml
+
+                if [ $? -ne 0 ] || [ ! -s "postgresql-final.yaml" ]; then
+                    echo "[$(date)] ERROR: Failed to create modified YAML file 'postgresql-final.yaml'." >&2
+                    kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR6": "Step-2: Unable to create yaml with nodeSelectors and tolerations"}}'
+                    exit 1
+                fi
+                echo "[$(date)] INFO: Successfully applied constraints from source to Postgres Yaml." >&2
+
+                echo "Removing the Postgresql_11"
+                kubectl delete svc -n devtroncd postgresql-postgresql postgresql-postgresql-headless postgresql-postgresql-metrics
+                kubectl delete sts postgresql-postgresql -n devtroncd
+
+                PV_NAME=$(kubectl get pv | grep "data-postgresql-postgresql-0" | awk '{print $1}')
+                kubectl delete pvc data-postgresql-postgresql-0 -n devtroncd
+  
+                while kubectl get pvc data-postgresql-postgresql-0 -n devtroncd &> /dev/null; do
+                  echo "Waiting for PVC data-postgresql-postgresql-0 to be deleted..."
+                  sleep 5
+                done
+
+                echo "PVC data-postgresql-postgresql-0 deleted"
+
+                kubectl delete pv $(kubectl get pv | grep data-postgresql-postgresql-0 | awk '{print $1}')
+                
+                while kubectl get pv "$PV_NAME" &> /dev/null; do
+                  echo "Waiting for PV $PV_NAME to be deleted..."
+                  sleep 5
+                done
+            
+                echo "PV $PV_NAME Deleted"
+
+                sleep 15
+
+                kubectl apply -f postgresql-final.yaml
+            fi
+
+            while [[ "$(kubectl get pod postgresql-postgresql-0 -n devtroncd -o jsonpath='{.status.phase}')" != "Running" ]] || [[ "$(kubectl get pod postgresql-postgresql-0 -n devtroncd -o jsonpath='{.status.containerStatuses[*].ready}')" == *"false"* ]]; do
+              sleep 5
+            done
+
+            sleep 5
+
+            if [ "$PVC_SIZE" != "20Gi" ]; then
+                kubectl scale sts postgresql-postgresql -n devtroncd --replicas=0 &> /dev/null
+                kubectl patch pvc data-postgresql-postgresql-0 -n devtroncd -p '{"spec":{"resources":{"requests":{"storage":"'$PVC_SIZE'"}}}}'
+                kubectl scale sts postgresql-postgresql -n devtroncd --replicas=1 &> /dev/null
+            fi
+
+            echo "==================================Waiting for Postgres to come up==================================="
+            
+            echo "Waiting for postgresql-postgresql-0 pod to become healthy..."
+            while [[ "$(kubectl get pod postgresql-postgresql-0 -n devtroncd -o jsonpath='{.status.phase}')" != "Running" ]] || [[ "$(kubectl get pod postgresql-postgresql-0 -n devtroncd -o jsonpath='{.status.containerStatuses[*].ready}')" == *"false"* ]]; do
+              echo "Pod not ready yet, waiting 10 seconds..."
+              sleep 10
+            done
+
+            echo "Waiting for Database to be initialzed on  Postgres:14"
+            sleep 50
+            echo "Proceeding to restore DB on Postgres:14"
+            psql -h $PGHOST -p $PGPORT -U "$PGUSER" -f "${BACKUP_TARGET}"
+            echo "Verifying the size of Database after Restore"
+            psql -h "$PGHOST" -U "$PGUSER" -c "SELECT datname, pg_size_pretty(pg_database_size(datname)) FROM pg_database;" >> db_14.txt
+            cat db_14.txt
+            sleep 10
+            kubectl -n devtroncd annotate svc -n devtroncd postgresql-postgresql postgresql-postgresql-headless postgresql-postgresql-metrics "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+            kubectl -n devtroncd label sts postgresql-postgresql "app.kubernetes.io/managed-by=Helm" --overwrite
+            kubectl -n devtroncd annotate sts postgresql-postgresql "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+            kubectl -n devtroncd label cm postgresql-postgresql-scripts postgresql-postgresql-customscripts "app.kubernetes.io/managed-by=Helm" --overwrite
+            kubectl -n devtroncd annotate cm postgresql-postgresql-scripts postgresql-postgresql-customscripts "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+            sleep 5
+            kubectl scale sts devtron-nats -n devtroncd --replicas=1
+            while true; do
+                pod_status=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.phase}" 2>/dev/null)
+                ready_containers=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.containerStatuses[*].ready}" 2>/dev/null)
+                ready_count=$(echo "$ready_containers" | tr ' ' '\n' | grep -c "true")
+
+                if [[ "$pod_status" == "Running" && "$ready_count" -eq 3 ]]; then
+                    echo "✅ devtron-nats-0 is running and all 3 containers are ready."
+                    break
+                fi
+                echo "🔄 Status: $pod_status | Ready containers: $ready_count/3"
+                sleep 5
+            done
+            kubectl get sts -n devtroncd -o name | grep -v "statefulset.apps/postgresql-postgresql" | xargs -I{} kubectl scale {} -n devtroncd --replicas=1
+            kubectl scale deploy -n devtroncd --all --replicas=1
+            kubectl scale deploy -n argo --all --replicas=1
+            CHECK_INTERVAL=10
+            TIMEOUT=300  
+            elapsed=0
+            echo "⏳ Checking that all pods in 'devtroncd' are Running or Not..."
+            while kubectl get pods -n devtroncd -o wide --no-headers 2>/dev/null | grep -vE "app-sync-cronjob-|app-manual-sync-job-|devtron-upgrade-init-|app-sync-job-" | awk '{print $3}' | grep -qvE '^Running$|^Completed$'; do
+              if (( elapsed >= TIMEOUT )); then
+                echo "❌ Timeout: Some pods are still not Running after $((TIMEOUT / 60)) minutes."
+                exit 1
+              fi
+              echo "⏳ Waiting: Found pods not yet Running. Checking again in ${CHECK_INTERVAL}s..."
+              sleep "$CHECK_INTERVAL"
+              ((elapsed += CHECK_INTERVAL))
+            done
+            kubectl patch configmap devtron-postgres-upgrade devtron-custom-cm -n devtroncd --type merge -p '{"data": {"POSTGRES_MIGRATED": "14"}}'
+            echo "✅ Devtron is up now, please proceed with the upgrade from Devtron UI"
+        volumeMounts:
+        - name: backup-storage
+          mountPath: /backup-data 
+        envFrom:
+        - configMapRef:
+            name: devtron-common-cm
+      volumes:
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: devtron-db-upgrade-pvc
+      restartPolicy: Never
+      serviceAccountName: devtron

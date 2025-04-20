@@ -1,0 +1,96 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: devtron-upgrade-init
+  namespace: devtroncd
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 7200
+  template:
+    spec:
+      tolerations:
+        - operator: "Exists"
+      containers:
+      - name: upgrade-initializer
+        image: mirror.gcr.io/irawal007/kubectl:28f6c5c6-8489-66897
+        env:
+          - name: PGHOST
+            value: postgresql-postgresql.devtroncd
+          - name: PGPORT
+            value: "5432"
+          - name: PGUSER
+            value: postgres 
+          - name: PGPASSWORD 
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-postgresql
+                key: postgresql-password
+          - name: BACKUP_DIR
+            value: /backup-data 
+          - name: BACKUP_FILENAME
+            value: backup.sql 
+          - name: DB_TO_CHECK
+            value: clairv4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            BACKUP_TARGET="${BACKUP_DIR}/${BACKUP_FILENAME}"
+            echo "[$(date)]   Host: ${PGHOST}:${PGPORT}"
+            echo "[$(date)]   User: ${PGUSER}"
+            sleep 5
+            echo "Terminating all the connections to database and shutting down Devtron temporarily"
+            kubectl scale deploy -n devtroncd --all --replicas=0
+            kubectl scale deploy -n argo --all --replicas=0
+            kubectl get sts -n devtroncd -o name | grep -v "statefulset.apps/postgresql-postgresql" | xargs -I{} kubectl scale {} -n devtroncd --replicas=0
+            while true; do
+                running_devtroncd=$(kubectl get pods -n devtroncd | grep -vE "postgresql-postgresql|app-sync-cronjob-|app-manual-sync-job-|devtron-upgrade-init-|app-sync-job-" | grep -c "Running")
+                running_argo=$(kubectl get pods -n argo | grep -c "Running")
+                total_running=$((running_devtroncd + running_argo))
+                if [[ "$total_running" -eq 0 ]]; then
+                    echo "[$(date)] ✅ INFO: All pods are scaled down."
+                    break
+                fi
+                echo "[$(date)] 🔄 INFO: Still waiting... ($total_running pods running)"
+                sleep 5
+            done
+            echo "Checking the size of existing Database"
+            psql -h "$PGHOST" -U "$PGUSER" -c "SELECT datname, pg_size_pretty(pg_database_size(datname)) FROM pg_database;" >> db_11.txt
+            cat db_11.txt
+            DBS=("casbin" "git_sensor" "lens" "clairv4" "orchestrator")
+            for db in "${DBS[@]}"; do
+              echo "Terminating connections to $db database..."
+              PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname='$db';"
+            done
+            mkdir -p ${BACKUP_DIR}
+            if [ "$DB_EXISTS" = "1" ]; then
+              echo "[$(date)] Database '${DB_TO_CHECK}' found. Performing full dump (pg_dumpall)..."
+              pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --exclude-database=${DB_TO_CHECK} --no-privileges --no-owner > "${BACKUP_TARGET}"
+              echo "[$(date)] Full dump completed successfully."
+            else
+              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing dump excluding '${DB_TO_CHECK}'..."
+              pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --no-privileges --no-owner > "${BACKUP_TARGET}"
+              echo "[$(date)] Dump excluding '${DB_TO_CHECK}' completed successfully."
+            fi
+            echo "[$(date)] Backup process finished. Verifying backup file..."
+            if [ -s "${BACKUP_TARGET}" ]; then
+              echo "[$(date)] ✅ INFO: Backup file '${BACKUP_TARGET}' created and is not empty."
+              ls -lh "${BACKUP_TARGET}"
+            else
+              echo "[$(date)] ❌ ERROR: Backup file '${BACKUP_TARGET}' was not created or is empty!"
+              kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR": "Step-1 :Backup file was not created or is empty!"}}'
+              exit 1
+            fi
+            kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"POSTGRES_BACKED_UP": "true"}}' &> /dev/null
+            echo "First Checkpoint Reached, check the documentation for next steps <doclink> 🚀"
+        volumeMounts:
+        - name: backup-storage
+          mountPath: /backup-data
+        envFrom:
+        - configMapRef:
+            name: devtron-common-cm
+      volumes:
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: devtron-db-upgrade-pvc
+      restartPolicy: Never
+      serviceAccountName: devtron
