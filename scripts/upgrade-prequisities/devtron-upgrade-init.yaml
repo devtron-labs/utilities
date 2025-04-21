@@ -67,7 +67,7 @@ spec:
               pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --exclude-database=${DB_TO_CHECK} --no-privileges --no-owner > "${BACKUP_TARGET}"
               echo "[$(date)] Dump completed successfully."
             else
-              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing dump full dump..."
+              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing full dump..."
               pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --no-privileges --no-owner > "${BACKUP_TARGET}"
               echo "[$(date)] Full Dump completed successfully."
             fi
