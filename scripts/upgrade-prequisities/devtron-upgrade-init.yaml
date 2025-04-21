@@ -63,13 +63,13 @@ spec:
             done
             mkdir -p ${BACKUP_DIR}
             if [ "$DB_EXISTS" = "1" ]; then
-              echo "[$(date)] Database '${DB_TO_CHECK}' found. Performing full dump (pg_dumpall)..."
+              echo "[$(date)]Performing dump (pg_dumpall) excluding Database '${DB_TO_CHECK}'..."
               pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --exclude-database=${DB_TO_CHECK} --no-privileges --no-owner > "${BACKUP_TARGET}"
-              echo "[$(date)] Full dump completed successfully."
+              echo "[$(date)] Dump completed successfully."
             else
-              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing dump excluding '${DB_TO_CHECK}'..."
+              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing dump..."
               pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --no-privileges --no-owner > "${BACKUP_TARGET}"
-              echo "[$(date)] Dump excluding '${DB_TO_CHECK}' completed successfully."
+              echo "[$(date)] Dump completed successfully."
             fi
             echo "[$(date)] Backup process finished. Verifying backup file..."
             if [ -s "${BACKUP_TARGET}" ]; then
