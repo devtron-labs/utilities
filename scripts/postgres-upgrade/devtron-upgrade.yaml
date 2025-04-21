@@ -58,7 +58,7 @@ spec:
 
             PVC_SIZE=$(kubectl get pvc  -n devtroncd data-postgresql-postgresql-0 -o jsonpath='{.spec.resources.requests.storage}')
 
-            curl -LO https://raw.githubusercontent.com/akshatsinha007/akshat.sinha/refs/heads/main/postgresql.yaml
+            curl -LO https://raw.githubusercontent.com/devtron-labs/utilities/refs/heads/main/scripts/postgres-upgrade/postgresql.yaml
 
             echo "[$(date)] INFO: Getting StorageClass from existing Postgresql PVC"
 
