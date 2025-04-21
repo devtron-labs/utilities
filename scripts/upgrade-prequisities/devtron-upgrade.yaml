@@ -69,7 +69,7 @@ spec:
             yq eval-all -P '
               select(.kind == "StatefulSet") |= (
                 .spec.volumeClaimTemplates[] |=
-                  select(.metadata.name == "devtron") |=
+                  select(.metadata.name == "data") |=
                     .spec.storageClassName = "'"$STORAGE_CLASS"'"
               )
             ' postgresql.yaml > postgresql-sc.yaml
