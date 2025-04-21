@@ -20,12 +20,6 @@ spec:
             STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
             PVC_SIZE=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.resources.requests.storage}')
 
-            SIZE_VALUE=$(echo $PVC_SIZE | sed 's/[^0-9]*//g')
-
-            NEW_SIZE_VALUE=$((SIZE_VALUE + 5))
-
-            NEW_PVC_SIZE="${NEW_SIZE_VALUE}Gi"
-
             cat <<EOF > devtron-db-upgrade-pvc.yaml
             apiVersion: v1
             kind: PersistentVolumeClaim
@@ -38,7 +32,7 @@ spec:
               storageClassName: ${STORAGE_CLASS}
               resources:
                 requests:
-                  storage: ${NEW_PVC_SIZE}
+                  storage: ${PVC_SIZE}
             EOF
             echo "Creating PVC and Jobs for the Upgrade initialization Process"
             kubectl apply -f devtron-db-upgrade-pvc.yaml

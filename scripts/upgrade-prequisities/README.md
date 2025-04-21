@@ -14,7 +14,6 @@ The upgrade process consists of three sequential Kubernetes jobs:
 
 - Ensure that you have deployed the Devtron-Backup-Chart and atleast one backup is pushed successfully.
 - Adminsistrative access to the Cluster on which Devtron is running with `kubectl` configured
-- StorageClass being used by Devtron Microservices has `allowVolumeExpansion: true` in it. 
 - PVC Creation is not blocked by any Policy, if it is then exclude `devtroncd` namespace from it.
 
 ## Step 1: Apply the Pre-Upgrade Job
@@ -29,7 +28,7 @@ kubectl apply -f devtron-pre-upgrade.yaml
 This job will:
 1. Create a ConfigMap named `devtron-postgres-upgrade` in the `devtroncd` namespace.
 2. Determine the StorageClass and size of the existing PostgreSQL PVC
-3. Create a new PVC named `devtron-postgres-backup-pvc` with additional storage (+5Gi).
+3. Create a new PVC named `devtron-db-upgrade-pvc` with additional storage (+5Gi).
 4. Automatically apply the upgrade-init job
 
 To monitor the progress of this job:
@@ -55,13 +54,12 @@ kubectl logs -f job/devtron-upgrade-init -n devtroncd
 
 The job will indicate when the "First Checkpoint" is reached. Ensure this job completes successfully before proceeding to the next step.
 
-You can verify the completion by checking if the ConfigMap has been updated:
-
-```bash
-kubectl get configmap devtron-postgres-upgrade -n devtroncd -o jsonpath="{.data.POSTGRES_BACKED_UP}"
-```
 
 The value should be "true" if the Upgrade-Init Job was successful.
+
+### Troubleshooting
+
+
 
 ## Step 3: Apply the Upgrade Job
 
@@ -101,9 +99,9 @@ The value of `POSTGRES_MIGRATED` should be "14" if the migration was successful.
 
 ## Potential Issues and Troubleshooting
 
-### Backup Failure
+### Job Failure
 
-1. If the backup process fails, check the logs and ConfigMap for error messages:
+1. If the devtron-upgrade-init or the devtron-upgrade job fails, check the logs of job and ConfigMap for error messages:
 
 ```bash
 kubectl get configmap devtron-postgres-upgrade -n devtroncd -o yaml
@@ -111,7 +109,9 @@ kubectl get configmap devtron-postgres-upgrade -n devtroncd -o yaml
 
 Look for any entries with "ERROR" in the keys.
 
-2. If the devtron-upgrade-init job is in pending state then check for the PVC named `devtron-postgres-backup-pvc` ensure that the PVC is successfully created.
+2. To reapply the devtron-upgrade-init job, delete the pvc named `devtron-db-upgrade-pvc`, re-create it with the same configurations and then reapply the devtron-upgrade-init job.
+
+3. If the devtron-upgrade-init job is in pending state then check for the PVC named `devtron-db-upgrade-pvc` ensure that the PVC is successfully created.
 
 ## Next Steps
 

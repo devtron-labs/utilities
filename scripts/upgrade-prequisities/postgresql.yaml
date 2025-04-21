@@ -1,0 +1,346 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-postgresql-metrics
+  namespace: devtroncd
+  labels:
+    app: postgresql
+    release: "devtron"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    prometheus.io/port: "9187"
+    prometheus.io/scrape: "true"
+    "helm.sh/resource-policy": keep
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metrics
+      port: 9187
+      targetPort: http-metrics
+  selector:
+    app: postgresql
+    release: devtron
+    role: master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-postgresql
+  namespace: devtroncd
+  labels:
+    app: postgresql
+    release: "devtron"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: postgresql
+    release: "devtron"
+    role: master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-postgresql-headless
+  namespace: devtroncd
+  labels:
+    app: postgresql
+    release: "devtron"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: postgresql
+    release: "devtron"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql-postgresql
+  namespace: devtroncd
+  labels:
+    app: postgresql
+    release: "devtron"
+  annotations:
+    "helm.sh/resource-policy": keep
+    "meta.helm.sh/release-name": devtron
+    "meta.helm.sh/release-namespace": devtroncd
+spec:
+  replicas: 1
+  serviceName: postgresql-postgresql
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: postgresql
+      release: "devtron"
+      role: master
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        chart: postgresql-8.6.4
+        release: "devtron"
+        role: master
+    spec:
+      serviceAccountName: devtron-default-sa
+      securityContext:
+        fsGroup: 999
+      initContainers:
+        - name: postgres-init
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+          image: quay.io/devtron/postgres:14.9
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: devtron-common-cm
+          volumeMounts:
+            - mountPath: /customscripts
+              name: customscripts-volume
+            - mountPath: /initscripts
+              name: initscripts
+            - mountPath: /scripts
+              name: scripts
+            - mountPath: /configs
+              name: configs
+          command: [ "/initscripts/init.sh" ]
+      containers:
+        - name: postgres
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+          image: quay.io/devtron/postgres:14.9
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pg"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: postgresql-password
+                  name: postgresql-postgresql
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-postgresql
+                  key: POSTGRES_USER
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: "md5"
+            - name: POSTGRES_INITDB_ARGS
+              value: "--auth-local=md5"
+          envFrom:
+            - secretRef:
+                name: postgresql-postgresql
+            - configMapRef:
+                name: devtron-common-cm
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 10
+          volumeMounts:
+            - mountPath: /var/run
+              name: run
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /var/lib/postgresql/data
+              name: data
+            - mountPath: /docker-entrypoint-initdb.d
+              name: scripts
+            - mountPath: /etc/postgresql
+              name: configs
+        - name: metrics
+          image: quay.io/devtron/postgres_exporter:v0.10.1
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: DATA_SOURCE_URI
+              value: "127.0.0.1:5432/orchestrator?sslmode=disable"
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-postgresql
+                  key: postgresql-password
+            - name: DATA_SOURCE_USER
+              value: postgres
+          envFrom:
+            - configMapRef:
+                name: devtron-common-cm
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http-metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http-metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          ports:
+            - name: http-metrics
+              containerPort: 9187
+      volumes:
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: scripts
+          emptyDir: {}
+        - name: configs
+          emptyDir: {}
+        - name: initscripts
+          configMap:
+            name: postgresql-postgresql-scripts
+            defaultMode: 0555
+        - name: customscripts-volume
+          configMap:
+            name: postgresql-postgresql-customscripts
+            defaultMode: 0555
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+---
+# Source: devtron-operator/templates/postgresql.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-postgresql-customscripts
+  namespace: devtroncd
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-2"
+    "helm.sh/resource-policy": keep
+    "meta.helm.sh/release-name": devtron
+    "meta.helm.sh/release-namespace": devtroncd
+data:
+  db_create.sql: |
+    create database casbin;
+    create database git_sensor;
+    create database lens;
+    create database clairv4;
+---
+# Source: devtron-operator/templates/postgresql.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-postgresql-scripts
+  namespace: devtroncd
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-2"
+    "helm.sh/resource-policy": keep
+    "meta.helm.sh/release-name": devtron
+    "meta.helm.sh/release-namespace": devtroncd
+data:
+  01-init-userdb.sh: |
+    #!/bin/sh
+    create_user()
+    {
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -v USERDBNAME="$POSTGRES_DB" -v USERDBUSER="$USERDB_USER" -v USERDBPASSWORD="'$USERDB_PASSWORD'" <<-EOSQL
+      CREATE USER :USERDBUSER WITH PASSWORD :USERDBPASSWORD;
+      GRANT ALL PRIVILEGES ON DATABASE :USERDBNAME TO :USERDBUSER;
+    EOSQL
+    }
+    set -e
+    if [ ! -z "$POSTGRES_DB" ] && [ ! -z "$USERDB_USER" ] && [ ! -z "$USERDB_PASSWORD" ]; then
+      create_user
+    fi
+  init.sh: |
+    #!/bin/sh
+    echo "Start initialization"
+    echo "Copy init-userdb script"
+    cp /initscripts/01-init-userdb.sh /scripts
+    if [ -d /extrascripts ]; then
+      echo "Copy extra scripts"
+      cp /extrascripts/* /scripts
+    fi
+    if [ -d /customscripts ]; then
+      echo "Copy custom scripts"
+      cp /customscripts/* /scripts
+    fi
+    if [ -d /customconfig ]; then
+      echo "Create postgres config"
+      cat /customconfig/* >>/configs/postgresql.conf
+    fi
+    if [ -d /extraconfigs ]; then
+      echo "Add extra configs to postgres config"
+      cat /extraconfigs/* >>/configs/postgresql.conf
+    fi
+    echo "Initialization done."
