@@ -37,7 +37,7 @@ spec:
             echo "Creating PVC and Jobs for the Upgrade initialization Process"
             kubectl apply -f devtron-db-upgrade-pvc.yaml
             sleep 5 
-            kubectl apply -f https://raw.githubusercontent.com/akshatsinha007/akshat.sinha/refs/heads/main/devtron-upgrade-init.yaml
+            kubectl apply -f https://raw.githubusercontent.com/devtron-labs/utilities/refs/heads/main/scripts/postgres-upgrade/devtron-upgrade-init.yaml
             echo "[$(date)] ✅ INFO: devtron-upgrade-init Job has been applied"
             echo "Please run "kubectl logs -f job/devtron-upgrade-init -n devtroncd" and keep monitoring the logs"
         envFrom:
