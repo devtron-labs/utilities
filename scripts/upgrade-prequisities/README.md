@@ -71,7 +71,7 @@ kubectl apply -f devtron-upgrade.yaml
 
 This job will:
 1. Verify if the Upgrade-Init Job was successful
-2. Extract any nodeSelectors or tolerations from the existing PostgreSQL deployment
+2. Extract any nodeSelectors or tolerations from the existing PostgreSQL StatefulSet.
 3. Remove the PostgreSQL 11 components
 4. Install PostgreSQL 14 with the same configuration
 5. Migrate the Data.
