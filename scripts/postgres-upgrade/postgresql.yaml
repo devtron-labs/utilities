@@ -1,11 +1,37 @@
+# Source: devtron/charts/devtron/templates/postgresql.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-postgresql
+  labels:
+    helm.sh/chart: postgres-0.4.0
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+    app.kubernetes.io/version: "14.5"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: postgres
+      protocol: TCP
+      name: postgres
+  selector:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+---
+# Source: devtron/charts/devtron/templates/postgresql.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: postgresql-postgresql-metrics
-  namespace: devtroncd
   labels:
-    app: postgresql
-    release: "devtron"
+    helm.sh/chart: postgres-0.4.0
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+    app.kubernetes.io/version: "14.5"
     app.kubernetes.io/managed-by: Helm
   annotations:
     prometheus.io/port: "9187"
@@ -18,40 +44,19 @@ spec:
       port: 9187
       targetPort: http-metrics
   selector:
-    app: postgresql
-    release: devtron
-    role: master
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgresql-postgresql
-  namespace: devtroncd
-  labels:
-    app: postgresql
-    release: "devtron"
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    "helm.sh/resource-policy": keep
-spec:
-  type: ClusterIP
-  ports:
-    - name: tcp-postgresql
-      port: 5432
-      targetPort: 5432
-  selector:
-    app: postgresql
-    release: "devtron"
-    role: master
----
+# Source: devtron/charts/devtron/templates/postgresql.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: postgresql-postgresql-headless
-  namespace: devtroncd
   labels:
-    app: postgresql
-    release: "devtron"
+    helm.sh/chart: postgres-0.4.0
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+    app.kubernetes.io/version: "14.5"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/resource-policy": keep
@@ -59,25 +64,27 @@ spec:
   type: ClusterIP
   clusterIP: None
   ports:
-    - name: tcp-postgresql
-      port: 5432
-      targetPort: 5432
+    - port: 5432
+      targetPort: postgres
+      protocol: TCP
+      name: postgres
   selector:
-    app: postgresql
-    release: "devtron"
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
 ---
+# Source: devtron/charts/devtron/templates/postgresql.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgresql-postgresql
-  namespace: devtroncd
   labels:
-    app: postgresql
-    release: "devtron"
+    helm.sh/chart: postgres-0.4.0
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: devtron
+    app.kubernetes.io/version: "14.5"
+    app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/resource-policy": keep
-    "meta.helm.sh/release-name": devtron
-    "meta.helm.sh/release-namespace": devtroncd
 spec:
   replicas: 1
   serviceName: postgresql-postgresql
@@ -86,17 +93,14 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: postgresql
-      release: "devtron"
-      role: master
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/instance: devtron
   template:
     metadata:
       labels:
-        app: postgresql
-        chart: postgresql-8.6.4
-        release: "devtron"
-        role: master
-    spec:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/instance: devtron
+    spec:      
       serviceAccountName: devtron-default-sa
       securityContext:
         fsGroup: 999
@@ -136,7 +140,7 @@ spec:
           image: quay.io/devtron/postgres:14.9
           imagePullPolicy: IfNotPresent
           ports:
-            - name: tcp-postgresql
+            - name: postgres
               containerPort: 5432
               protocol: TCP
           env:
@@ -147,11 +151,6 @@ spec:
                 secretKeyRef:
                   key: postgresql-password
                   name: postgresql-postgresql
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: postgresql-postgresql
-                  key: POSTGRES_USER
             - name: POSTGRES_HOST_AUTH_METHOD
               value: "md5"
             - name: POSTGRES_INITDB_ARGS
@@ -239,6 +238,7 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 6
+          volumeMounts:
           ports:
             - name: http-metrics
               containerPort: 9187
@@ -264,27 +264,46 @@ spec:
         name: data
       spec:
         accessModes:
-          - ReadWriteOnce
+          - ReadWriteOnce        
         resources:
           requests:
             storage: 20Gi
 ---
-# Source: devtron-operator/templates/postgresql.yaml
+# Source: devtron/charts/devtron/templates/postgresql.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-postgresql-init-scripts
+  labels:
+    app: postgresql
+    chart: postgresql-8.6.4
+    release: "devtron"
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-2"
+    "helm.sh/resource-policy": keep
+data:
+  db_create.sql: |
+    create database casbin;
+    create database git_sensor;
+    create database lens;
+    create database clairv4
+---
+# Source: devtron/charts/devtron/templates/postgresql.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgresql-postgresql-customscripts
-  namespace: devtroncd
   labels:
+    helm.sh/chart: postgres-0.4.0
     app.kubernetes.io/name: postgres
     app.kubernetes.io/instance: devtron
+    app.kubernetes.io/version: "14.5"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-2"
     "helm.sh/resource-policy": keep
-    "meta.helm.sh/release-name": devtron
-    "meta.helm.sh/release-namespace": devtroncd
 data:
   db_create.sql: |
     create database casbin;
@@ -292,22 +311,21 @@ data:
     create database lens;
     create database clairv4;
 ---
-# Source: devtron-operator/templates/postgresql.yaml
+# Source: devtron/charts/devtron/templates/postgresql.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgresql-postgresql-scripts
-  namespace: devtroncd
   labels:
+    helm.sh/chart: postgres-0.4.0
     app.kubernetes.io/name: postgres
     app.kubernetes.io/instance: devtron
+    app.kubernetes.io/version: "14.5"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-2"
     "helm.sh/resource-policy": keep
-    "meta.helm.sh/release-name": devtron
-    "meta.helm.sh/release-namespace": devtroncd
 data:
   01-init-userdb.sh: |
     #!/bin/sh
