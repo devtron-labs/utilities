@@ -12,7 +12,7 @@ spec:
         - operator: "Exists"
       containers:
       - name: upgrade-initializer
-        image: mirror.gcr.io/irawal007/kubectl:28f6c5c6-8489-66897
+        image: quay.io/devtron/devtron-utils:b0bfb869-988-32186
         env:
           - name: PGHOST
             value: postgresql-postgresql.devtroncd
