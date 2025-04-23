@@ -52,13 +52,7 @@ To monitor the progress of this job:
 kubectl logs -f job/devtron-upgrade-init -n devtroncd
 ```
 
-The job will indicate when the "First Checkpoint" is reached. Ensure this job completes successfully before proceeding to the next step.
-
-
-The value should be "true" if the Upgrade-Init Job was successful.
-
-### Troubleshooting
-
+Ensure this job completes successfully before proceeding to the next step.
 
 
 ## Step 3: Apply the Upgrade Job

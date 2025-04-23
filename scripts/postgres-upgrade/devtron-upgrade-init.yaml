@@ -12,7 +12,7 @@ spec:
         - operator: "Exists"
       containers:
       - name: upgrade-initializer
-        image: mirror.gcr.io/irawal007/kubectl:28f6c5c6-8489-66897
+        image: quay.io/devtron/devtron-utils:b0bfb869-988-32186
         env:
           - name: PGHOST
             value: postgresql-postgresql.devtroncd
@@ -63,13 +63,13 @@ spec:
             done
             mkdir -p ${BACKUP_DIR}
             if [ "$DB_EXISTS" = "1" ]; then
-              echo "[$(date)] Database '${DB_TO_CHECK}' found. Performing dump (pg_dumpall) excluding Database '${DB_TO_CHECK}'..."
+              echo "[$(date)] Database '${DB_TO_CHECK}' found. Performing full dump (pg_dumpall)..."
               pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --exclude-database=${DB_TO_CHECK} --no-privileges --no-owner > "${BACKUP_TARGET}"
-              echo "[$(date)] Dump completed successfully."
+              echo "[$(date)] Full dump completed successfully."
             else
-              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing full dump..."
+              echo "[$(date)] Database '${DB_TO_CHECK}' not found. Performing dump excluding '${DB_TO_CHECK}'..."
               pg_dumpall -h $PGHOST -p $PGPORT -U $PGUSER --no-privileges --no-owner > "${BACKUP_TARGET}"
-              echo "[$(date)] Full Dump completed successfully."
+              echo "[$(date)] Dump excluding '${DB_TO_CHECK}' completed successfully."
             fi
             echo "[$(date)] Backup process finished. Verifying backup file..."
             if [ -s "${BACKUP_TARGET}" ]; then
@@ -81,7 +81,7 @@ spec:
               exit 1
             fi
             kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"POSTGRES_BACKED_UP": "true"}}' &> /dev/null
-            echo "devtron-upgrade-init job completed successfully, check the documentation for next steps <doclink> 🚀"
+            echo "The upgrade initializer job is completed successfully , please check the documentation for next steps https://docs.devtron.ai/upgrade/devtron-upgrade-1.5.0 🚀"
         volumeMounts:
         - name: backup-storage
           mountPath: /backup-data

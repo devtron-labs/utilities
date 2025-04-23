@@ -12,7 +12,7 @@ spec:
         - operator: "Exists"
       containers:
       - name: database-upgrader
-        image: mirror.gcr.io/irawal007/kubectl:28f6c5c6-8489-66897
+        image: quay.io/devtron/devtron-utils:b0bfb869-988-32186
         env:
           - name: PGHOST
             value: postgresql-postgresql.devtroncd
@@ -58,21 +58,104 @@ spec:
 
             PVC_SIZE=$(kubectl get pvc  -n devtroncd data-postgresql-postgresql-0 -o jsonpath='{.spec.resources.requests.storage}')
 
-            curl -LO https://raw.githubusercontent.com/akshatsinha007/akshat.sinha/refs/heads/main/postgresql.yaml
+            curl -LO https://raw.githubusercontent.com/devtron-labs/utilities/refs/heads/main/scripts/postgres-upgrade/postgresql.yaml
 
             echo "[$(date)] INFO: Getting StorageClass from existing Postgresql PVC"
 
-            STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
+            SIZE_IN_PVC=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.resources.requests.storage}')
+            SIZE_IN_STS=$(kubectl get sts postgresql-postgresql -n devtroncd -o jsonpath='{.spec.volumeClaimTemplates[?(@.metadata.name=="data")].spec.resources.requests.storage}')
+            STORAGE_CLASS=$(kubectl get sts postgresql-postgresql -n devtroncd -o jsonpath='{.spec.volumeClaimTemplates[*].spec.storageClassName}')
 
-            echo "StorageClass to be used: $STORAGE_CLASS "
+            if [[ -n "$STORAGE_CLASS" ]]; then
+              echo "storageClassName is present: $STORAGE_CLASS"
+              IS_DEFAULT="false"
+            else
+              export IS_DEFAULT=true
+              echo "storageClassName not found, IS_DEFAULT set to true"
+              STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
+              echo "Using default storage class: $STORAGE_CLASS"
+            fi
 
-            yq eval-all -P '
-              select(.kind == "StatefulSet") |= (
-                .spec.volumeClaimTemplates[] |=
-                  select(.metadata.name == "data") |=
-                    .spec.storageClassName = "'"$STORAGE_CLASS"'"
-              )
-            ' postgresql.yaml > postgresql-sc.yaml
+            echo "PVC Size: $SIZE_IN_PVC, StatefulSet Size: $SIZE_IN_STS"
+
+            # Case 1: StorageClass default and sizes match
+            if [[ "$IS_DEFAULT" == "true" && "$SIZE_IN_PVC" == "$SIZE_IN_STS" ]]; then
+              echo "Case 1: Default StorageClass and sizes match"
+              PVC_SIZE="$SIZE_IN_PVC"
+              STS_SIZE="$SIZE_IN_STS"
+
+              yq eval-all -P '
+                select(.kind == "StatefulSet") |= (
+                  .spec.volumeClaimTemplates[] |=
+                    select(.metadata.name == "data") |=
+                      .spec.resources.requests.storage = "'"$SIZE_IN_STS"'"
+                )
+              ' postgresql.yaml > postgresql-sc.yaml
+              
+            # Case 2: StorageClass not default and sizes match
+            elif [[ "$IS_DEFAULT" != "true" && "$SIZE_IN_PVC" == "$SIZE_IN_STS" ]]; then
+              echo "Case 2: Non-default StorageClass and sizes match"
+              PVC_SIZE="$SIZE_IN_PVC"
+              STS_SIZE="$SIZE_IN_STS"
+
+              yq eval-all -P '
+                select(.kind == "StatefulSet") |= (
+                  .spec.volumeClaimTemplates[] |=
+                    select(.metadata.name == "data") |= (
+                      .spec.storageClassName = "'"$STORAGE_CLASS"'" |
+                      .spec.resources.requests.storage = "'"$SIZE_IN_STS"'"
+                    )
+                )
+              ' postgresql.yaml > postgresql-sc.yaml
+              
+            # Case 3: StorageClass default and sizes don't match
+            elif [[ "$IS_DEFAULT" == "true" && "$SIZE_IN_PVC" != "$SIZE_IN_STS" ]]; then
+              echo "Case 3: Default StorageClass and sizes don't match"
+              PVC_SIZE="$SIZE_IN_PVC"
+              STS_SIZE="$SIZE_IN_STS"
+
+              yq eval-all -P '
+                select(.kind == "StatefulSet") |= (
+                  .spec.volumeClaimTemplates[] |=
+                    select(.metadata.name == "data") |=
+                      .spec.resources.requests.storage = "'"$SIZE_IN_STS"'"
+                )
+              ' postgresql.yaml > postgresql-sc.yaml
+              
+            # Case 4: StorageClass not default and sizes don't match
+            else
+              echo "Case 4: Non-default StorageClass and sizes don't match"
+              PVC_SIZE="$SIZE_IN_PVC"
+              STS_SIZE="$SIZE_IN_STS"
+
+              yq eval-all -P '
+                select(.kind == "StatefulSet") |= (
+                  .spec.volumeClaimTemplates[] |=
+                    select(.metadata.name == "data") |= (
+                      .spec.storageClassName = "'"$STORAGE_CLASS"'" |
+                      .spec.resources.requests.storage = "'"$SIZE_IN_STS"'"
+                    )
+                )
+              ' postgresql.yaml > postgresql-sc.yaml
+            fi
+
+            cat <<EOF > data-postgresql-postgresql-0.yaml
+            apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: data-postgresql-postgresql-0
+              namespace: devtroncd
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              storageClassName: ${STORAGE_CLASS}
+              resources:
+                requests:
+                  storage: ${PVC_SIZE}
+            EOF
+
+            echo "Generated PVC YAML with StorageClass: $STORAGE_CLASS and Size: $PVC_SIZE"
+            echo "Generated StatefulSet YAML with Size: $STS_SIZE"
 
             touch k8s-patch.yaml
             export PATCH_FILE="k8s-patch.yaml"
@@ -121,7 +204,12 @@ spec:
 
                 sleep 15
 
-                kubectl apply -f postgresql-sc.yaml
+                kubectl apply -f data-postgresql-postgresql-0.yaml -n devtroncd
+                sleep 10
+
+                echo "Waiting for PVC to be applied"
+
+                kubectl apply -f postgresql-sc.yaml -n devtroncd
               else
                 echo "[$(date)] INFO: Constraints found. Modifying and applying target YAML..." >&2
                 echo "$PATCH_JSON_DATA" | yq eval - > "$PATCH_FILE"
@@ -142,6 +230,7 @@ spec:
                     kubectl patch configmap devtron-postgres-upgrade -n devtroncd --type merge -p '{"data": {"ERROR6": "Step-2: Unable to create yaml with nodeSelectors and tolerations"}}'
                     exit 1
                 fi
+
                 echo "[$(date)] INFO: Successfully applied constraints from source to Postgres Yaml." >&2
 
                 echo "Removing the Postgresql_11"
@@ -168,20 +257,11 @@ spec:
                 echo "PV $PV_NAME Deleted"
 
                 sleep 15
+                kubectl apply -f data-postgresql-postgresql-0.yaml -n devtroncd
+                sleep 10
+                echo "Waiting for PVC to be applied"
 
-                kubectl apply -f postgresql-final.yaml
-            fi
-
-            while [[ "$(kubectl get pod postgresql-postgresql-0 -n devtroncd -o jsonpath='{.status.phase}')" != "Running" ]] || [[ "$(kubectl get pod postgresql-postgresql-0 -n devtroncd -o jsonpath='{.status.containerStatuses[*].ready}')" == *"false"* ]]; do
-              sleep 5
-            done
-
-            sleep 5
-
-            if [ "$PVC_SIZE" != "20Gi" ]; then
-                kubectl scale sts postgresql-postgresql -n devtroncd --replicas=0 &> /dev/null
-                kubectl patch pvc data-postgresql-postgresql-0 -n devtroncd -p '{"spec":{"resources":{"requests":{"storage":"'$PVC_SIZE'"}}}}'
-                kubectl scale sts postgresql-postgresql -n devtroncd --replicas=1 &> /dev/null
+                kubectl apply -f postgresql-final.yaml -n devtroncd -n devtroncd
             fi
 
             echo "==================================Waiting for Postgres to come up==================================="
@@ -191,8 +271,8 @@ spec:
               echo "Pod not ready yet, waiting 10 seconds..."
               sleep 10
             done
-
-            echo "Waiting for Database to be initialzed on  Postgres:14"
+            echo "[$(date)] INFO: Postgres Pod is Healthy now"
+            echo "Waiting for Database to be initialzed on  Postgres-14"
             sleep 50
             echo "Proceeding to restore DB on Postgres:14"
             psql -h $PGHOST -p $PGPORT -U "$PGUSER" -f "${BACKUP_TARGET}"
