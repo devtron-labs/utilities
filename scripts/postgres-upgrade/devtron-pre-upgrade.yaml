@@ -19,7 +19,7 @@ spec:
             kubectl create cm devtron-postgres-upgrade -n devtroncd &> /dev/null
             STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
             PVC_SIZE=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.resources.requests.storage}')
-            kubectl get sts -n devtroncd postgresql-postgresl -o yaml >> old.yaml
+            kubectl get sts -n devtroncd postgresql-postgresql -o yaml >> old.yaml
             cat <<EOF > devtron-db-upgrade-pvc.yaml
             apiVersion: v1
             kind: PersistentVolumeClaim
