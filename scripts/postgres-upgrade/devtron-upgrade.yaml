@@ -289,6 +289,8 @@ spec:
             installed_modules=$(kubectl get cm -n devtroncd devtron-custom-cm -o jsonpath='{.data.INSTALLED_MODULES}')
             if [ -z "$installed_modules" ]; then
               echo "EA mode"
+            else
+              echo "Integrations found $installed_modules"
               kubectl scale sts devtron-nats -n devtroncd --replicas=1
               while true; do
                   pod_status=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.phase}" 2>/dev/null)
