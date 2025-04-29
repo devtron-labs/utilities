@@ -286,19 +286,25 @@ spec:
             kubectl -n devtroncd label cm postgresql-postgresql-scripts postgresql-postgresql-customscripts "app.kubernetes.io/managed-by=Helm" --overwrite
             kubectl -n devtroncd annotate cm postgresql-postgresql-scripts postgresql-postgresql-customscripts "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
             sleep 5
-            kubectl scale sts devtron-nats -n devtroncd --replicas=1
-            while true; do
-                pod_status=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.phase}" 2>/dev/null)
-                ready_containers=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.containerStatuses[*].ready}" 2>/dev/null)
-                ready_count=$(echo "$ready_containers" | tr ' ' '\n' | grep -c "true")
-
-                if [[ "$pod_status" == "Running" && "$ready_count" -eq 3 ]]; then
-                    echo "✅ devtron-nats-0 is running and all 3 containers are ready."
-                    break
-                fi
-                echo "🔄 Status: $pod_status | Ready containers: $ready_count/3"
-                sleep 5
-            done
+            installed_modules=$(kubectl get cm -n devtroncd devtron-custom-cm -o jsonpath='{.data.INSTALLED_MODULES}')
+            if [ -z "$installed_modules" ]; then
+              echo "EA mode"
+            else
+              echo "Integrations found $installed_modules"
+              kubectl scale sts devtron-nats -n devtroncd --replicas=1
+              while true; do
+                  pod_status=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.phase}" 2>/dev/null)
+                  ready_containers=$(kubectl get pod devtron-nats-0 -n devtroncd -o jsonpath="{.status.containerStatuses[*].ready}" 2>/dev/null)
+                  ready_count=$(echo "$ready_containers" | tr ' ' '\n' | grep -c "true")
+  
+                  if [[ "$pod_status" == "Running" && "$ready_count" -eq 3 ]]; then
+                      echo "✅ devtron-nats-0 is running and all 3 containers are ready."
+                      break
+                  fi
+                  echo "🔄 Status: $pod_status | Ready containers: $ready_count/3"
+                  sleep 5
+              done
+            fi
             kubectl get sts -n devtroncd -o name | grep -v "statefulset.apps/postgresql-postgresql" | xargs -I{} kubectl scale {} -n devtroncd --replicas=1
             kubectl scale deploy -n devtroncd --all --replicas=1
             kubectl scale deploy -n argo --all --replicas=1
