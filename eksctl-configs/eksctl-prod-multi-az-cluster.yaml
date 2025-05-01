@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: prod-1
   region: us-west-2
-  version: "1.30"
+  version: "1.31"
 
 vpc:
   cidr: 172.31.0.0/16
@@ -36,10 +36,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::XXXXXXXX:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "devops"
     volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
     tags:
       Component : prod
     kubeletExtraConfig:
@@ -85,10 +88,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::XXXXXXXX:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "devops"
     volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
     tags:
       Component : prod
     kubeletExtraConfig:
@@ -134,10 +140,13 @@ nodeGroups:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::XXXXXXXX:policy/devtron-cluster-IAM-policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy
     ssh:
       allow: true
       publicKeyName: "devops"
     volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
     tags:
       Component : prod
     kubeletExtraConfig:
