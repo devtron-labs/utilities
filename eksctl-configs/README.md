@@ -14,7 +14,7 @@
 
 <details>
   <summary>Optional: Use a Limited-Access Policy Instead (Click to expand)</summary>
-If you prefer to restrict access to specific S3 buckets and limit ECR access, use the following **custom policy JSON**:
+If you prefer to restrict access to specific S3 buckets and limit ECR access, use the following custom policy JSON:
 
 ```json
 {
