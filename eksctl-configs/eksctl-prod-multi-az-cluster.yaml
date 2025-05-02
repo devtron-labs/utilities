@@ -12,9 +12,15 @@ vpc:
     gateway: "Single" 
 
 addons:
-- name: aws-ebs-csi-driver
-  wellKnownPolicies:	
-    ebsCSIController: true
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+    configurationValues: |
+      {
+        "defaultStorageClass": {
+          "enabled": true
+        }
+      }
 
 nodeGroups:
   - name: nodes-azA

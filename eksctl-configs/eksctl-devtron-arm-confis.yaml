@@ -13,9 +13,15 @@ vpc:
   cidr: "10.10.0.0/16"
 
 addons:
-- name: aws-ebs-csi-driver
-  wellKnownPolicies:	
-    ebsCSIController: true
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+    configurationValues: |
+      {
+        "defaultStorageClass": {
+          "enabled": true
+        }
+      }
 
 nodeGroups:
   - name: devtron-nodes
