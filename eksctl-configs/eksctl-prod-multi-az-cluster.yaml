@@ -11,6 +11,11 @@ vpc:
   nat:
     gateway: "Single" 
 
+addons:
+- name: aws-ebs-csi-driver
+  wellKnownPolicies:	
+    ebsCSIController: true
+
 nodeGroups:
   - name: nodes-azA
     privateNetworking: true

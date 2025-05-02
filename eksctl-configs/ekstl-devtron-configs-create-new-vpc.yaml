@@ -10,6 +10,12 @@ vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
   cidr: "10.30.0.0/16"
 
+# By default, Amazon EKS automatically installs three essential networking add-ons: the Amazon VPC CNI plugin, kube-proxy, and CoreDNS
+addons:
+- name: aws-ebs-csi-driver
+  wellKnownPolicies:	
+    ebsCSIController: true
+
 nodeGroups:
   - name: devtron-nodes
     privateNetworking: true

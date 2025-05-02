@@ -12,6 +12,11 @@ vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
   cidr: "10.10.0.0/16"
 
+addons:
+- name: aws-ebs-csi-driver
+  wellKnownPolicies:	
+    ebsCSIController: true
+
 nodeGroups:
   - name: devtron-nodes
     privateNetworking: true
@@ -29,7 +34,6 @@ nodeGroups:
       withAddonPolicies:
         autoScaler: true
         ebs: true
-
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
