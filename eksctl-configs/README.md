@@ -6,6 +6,8 @@
 - Install eksctl Refer https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html
 - Create 2 s3 buckets for storing cache and logs in the same region where you intend to create Devtron cluster ( Names can be something like s3://organization-devtron-ci-caching (versioning enabled), s3://organization-devtron-ci-logs )
 - Create a customPolicy `devtron-cluster-IAM-policy` ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy ) and give S3FullAccess to the s3 buckets created in previous step and `ElasticLoadBalancingFullAccess` (Devtron creates a Loadbalancer for it's service)
+- Create a key pair for your [Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html).  
+  If you prefer to use an existing key pair, update the sample data by modifying the value of `nodeGroups[*].ssh.publicKeyName` with the name of your existing key pair.
 
 
 ## Download the eksctl configs template and Modify
