@@ -49,6 +49,7 @@ nodeGroups:
       allow: true
       publicKeyName: "infra"
     volumeSize: 50
+    volumeType: gp3
     tags:
       Component : cicd
     kubeletExtraConfig:
@@ -93,6 +94,7 @@ nodeGroups:
       allow: true
       publicKeyName: "infra"
     volumeSize: 100
+    volumeType: gp3
     tags:
       Component : cicd
     labels: {purpose: ci}
