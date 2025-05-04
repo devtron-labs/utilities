@@ -1,0 +1,1 @@
+## Script to refresh the certificate of argocd.
