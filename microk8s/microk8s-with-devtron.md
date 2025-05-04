@@ -9,11 +9,11 @@ sudo chown -f -R $USER ~/.kube
 
 newgrp microk8s
 
-microk8s enable dns storage helm3 ingress
+sudo microk8s enable dns storage helm3 ingress
 
-echo "alias kubectl='microk8s kubectl '" >> .bashrc
+echo "alias kubectl='sudo microk8s kubectl '" >> .bashrc
 
-echo "alias helm='microk8s helm3 '" >> .bashrc
+echo "alias helm='sudo microk8s helm3 '" >> .bashrc
 
 source .bashrc
 ```
