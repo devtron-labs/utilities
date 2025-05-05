@@ -11,6 +11,17 @@ vpc:
   nat:
     gateway: "Single" 
 
+addons:
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+    configurationValues: |
+      {
+        "defaultStorageClass": {
+          "enabled": true
+        }
+      }
+
 nodeGroups:
   - name: nodes-azA
     privateNetworking: true
@@ -40,6 +51,7 @@ nodeGroups:
       allow: true
       publicKeyName: "devops"
     volumeSize: 50
+    volumeType: gp3
     tags:
       Component : prod
     kubeletExtraConfig:
@@ -77,7 +89,6 @@ nodeGroups:
       withAddonPolicies:
         autoScaler: true
         ebs: true
-
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
@@ -89,6 +100,7 @@ nodeGroups:
       allow: true
       publicKeyName: "devops"
     volumeSize: 50
+    volumeType: gp3
     tags:
       Component : prod
     kubeletExtraConfig:
@@ -126,7 +138,6 @@ nodeGroups:
       withAddonPolicies:
         autoScaler: true
         ebs: true
-
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
@@ -138,6 +149,7 @@ nodeGroups:
       allow: true
       publicKeyName: "devops"
     volumeSize: 50
+    volumeType: gp3
     tags:
       Component : prod
     kubeletExtraConfig:

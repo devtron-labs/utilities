@@ -2,11 +2,54 @@
 
 ## Prerequisites
 
-- Make sure that the bastion/local machine has appropriate permissions, we recommend using a role/user with Admin permissions, but if you need minimum permissions required to create the cluster, you can refer https://eksctl.io/usage/minimum-iam-policies/
 - Install eksctl Refer https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html
-- Create 2 s3 buckets for storing cache and logs in the same region where you intend to create Devtron cluster ( Names can be something like s3://organization-devtron-ci-caching (versioning enabled), s3://organization-devtron-ci-logs )
-- Create a customPolicy `devtron-cluster-IAM-policy` ( arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy ) and give S3FullAccess to the s3 buckets created in previous step and `ElasticLoadBalancingFullAccess` (Devtron creates a Loadbalancer for it's service)
+- Make sure that the bastion/local machine has appropriate permissions, we recommend using a role/user with Admin permissions, but if you need minimum permissions required to create the cluster, you can refer https://eksctl.io/usage/minimum-iam-policies/
+- Create 2 s3 buckets for storing cache and logs in the same region where you intend to create Devtron cluster ( Names can be something like s3://organization-devtron-ci-caching (versioning enabled), s3://organization-devtron-ci-logs)
+- Create a key pair for your [Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html).  
+  If you prefer to use an existing key pair, update the sample data by modifying the value of `nodeGroups[*].ssh.publicKeyName` with the name of your existing key pair.
+- Create a [custom IAM policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_create-console.html) named `devtron-cluster-IAM-policy` (`arn:aws:iam::XXXXXXXXXXXXXX:policy/devtron-cluster-IAM-policy`) with the following permissions:
+   * `AmazonS3FullAccess` – to allow access to the S3 buckets created in the previous step.
+   * `ElasticLoadBalancingFullAccess` – required as Devtron creates a LoadBalancer for its services.
+   * `AmazonEC2ContainerRegistryFullAccess` – to allow full access to ECR resources.
 
+<details>
+  <summary>Optional: Use a Limited-Access Policy Instead (Click to expand)</summary>
+If you prefer to restrict access to specific S3 buckets and limit ECR access, use the following custom policy JSON:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name",
+        "arn:aws:s3:::your-bucket-name/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:*"
+      ],
+      "Resource": "arn:aws:ecr:<region>:<account-id>:repository/<your-ecr-repo>"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+Replace your-bucket-name, region, account-id, and your-ecr-repo with your actual values.
+
+</details> 
 
 ## Download the eksctl configs template and Modify
 

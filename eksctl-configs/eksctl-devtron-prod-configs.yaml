@@ -20,6 +20,16 @@ vpc:
           id: "subnet-xxxxxxx"
       public-ap-south-1b:
           id: "subnet-xxxxxxx"
+addons:
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+    configurationValues: |
+      {
+        "defaultStorageClass": {
+          "enabled": true
+        }
+      }
 
 nodeGroups:
   - name: devtron-nodes
@@ -49,6 +59,7 @@ nodeGroups:
       allow: true
       publicKeyName: "infra"
     volumeSize: 50
+    volumeType: gp3
     tags:
       Component : cicd
     kubeletExtraConfig:
@@ -93,6 +104,7 @@ nodeGroups:
       allow: true
       publicKeyName: "infra"
     volumeSize: 100
+    volumeType: gp3
     tags:
       Component : cicd
     labels: {purpose: ci}

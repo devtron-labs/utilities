@@ -10,6 +10,19 @@ vpc:
 ## Make sure that this CIDR doesn't overlaps with any other exisiting VPC with which a peering needs to be done.
   cidr: "10.30.0.0/16"
 
+# By default, Amazon EKS automatically installs three essential networking add-ons: the Amazon VPC CNI plugin, kube-proxy, and CoreDNS
+# https://www.eksworkshop.com/docs/fundamentals/storage/ebs/ebs-csi-driver
+addons:
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+    configurationValues: |
+      {
+        "defaultStorageClass": {
+          "enabled": true
+        }
+      }
+      
 nodeGroups:
   - name: devtron-nodes
     privateNetworking: true
@@ -38,6 +51,7 @@ nodeGroups:
       allow: true
       publicKeyName: "infra"
     volumeSize: 50
+    volumeType: gp3
     asgSuspendProcesses: ["AZRebalance"]
     tags:
       Component : cicd
@@ -83,6 +97,7 @@ nodeGroups:
       allow: true
       publicKeyName: "infra"
     volumeSize: 100
+    volumeType: gp3
     asgSuspendProcesses: ["AZRebalance"]
     tags:
       Component : cicd
