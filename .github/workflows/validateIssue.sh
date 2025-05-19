@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "base or target repo : $BASE_REPO"
 echo "head or source repo : $HEAD_REPO"
 

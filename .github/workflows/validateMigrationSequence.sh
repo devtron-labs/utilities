@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # If forked repo then skip sql migration check
 if [[ $HEAD_BRANCH  != $HEAD_BRANCH ]]; then
   echo "Migration are not allowed from Forked repo"
