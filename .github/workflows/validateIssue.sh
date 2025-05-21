@@ -79,7 +79,7 @@ if [[ $repo == "devtron-labs/devtron" || $repo == "devtron-labs/devtron-services
     response=$(curl -s -w "%{http_code}" "$issue_api_url")  # Get the response body and status code in one go
 else
     echo "Adding extra arguments for authentication: private repository detected."
-    response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer ${{ secrets.GH_PR_VALIDATOR_TOKEN }}" \
+    response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer $GH_PR_VALIDATOR_TOKEN" \
         --header "Accept: application/vnd.github+json" "$issue_api_url")
 fi
 
