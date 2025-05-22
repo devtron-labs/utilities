@@ -10,7 +10,7 @@ components:
         FEATURE_IMAGE_PROMOTION_ENABLE: "true"
         FEATURE_CLUSTER_MAP_ENABLE: "true"
         FEATURE_CONFIG_DRIFT_ENABLE: "true"
-    image: "dashboard:e11c3085-b049a68f-6-33017"
+    image: "dashboard:68b78b52-01f6aa54-6-33190"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   # Values for devtron
