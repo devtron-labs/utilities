@@ -16,6 +16,17 @@ spec:
         command: ["/bin/bash", "-c"]
         args:
           - |
+            if kubectl get configmap devtron-common-cm -n devtroncd > /dev/null 2>&1; then
+              echo "ConfigMap devtron-common-cm already exists in namespace devtroncd."
+            else
+              echo "ConfigMap devtron-common-cm does not exist. Creating it..."
+              kubectl create configmap devtron-common-cm -n devtroncd
+              kubectl create configmap devtron-common-cm -n argo
+              kubectl annotate cm devtron-common-cm -n devtroncd "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+              kubectl label cm devtron-common-cm -n devtroncd "app.kubernetes.io/managed-by=Helm" --overwrite
+              kubectl -n argo annotate cm devtron-common-cm "meta.helm.sh/release-name=devtron" "meta.helm.sh/release-namespace=devtroncd" --overwrite
+              kubectl -n argo label cm devtron-common-cm "app.kubernetes.io/managed-by=Helm" --overwrite
+            fi
             kubectl create cm devtron-postgres-upgrade -n devtroncd &> /dev/null
             STORAGE_CLASS=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.storageClassName}')
             PVC_SIZE=$(kubectl get pvc data-postgresql-postgresql-0 -n devtroncd -o jsonpath='{.spec.resources.requests.storage}')
@@ -40,8 +51,5 @@ spec:
             kubectl apply -f https://raw.githubusercontent.com/devtron-labs/utilities/refs/heads/main/scripts/postgres-upgrade/devtron-upgrade-init.yaml
             echo "[$(date)] ✅ INFO: devtron-upgrade-init Job has been applied"
             echo "Please run "kubectl logs -f job/devtron-upgrade-init -n devtroncd" and keep monitoring the logs"
-        envFrom:
-        - configMapRef:
-            name: devtron-common-cm
       restartPolicy: Never
       serviceAccountName: devtron
