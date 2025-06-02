@@ -39,7 +39,8 @@ patterns=(
 
 # Function to extract all unique issue numbers and their corresponding repositories from PR_BODY
 # It iterates through defined patterns and extracts all matches.
-# Returns a list of "issue_num,repo" pairs, one per line.
+# Returns a list of "issue_num,repo" pairs, one per line, to standard output.
+# All diagnostic messages are redirected to stderr to prevent interference with readarray.
 extract_all_issues() {
     local -a found_issues=()
     local default_repo="devtron-labs/devtron" # Default repository if not explicitly mentioned in the link
@@ -51,7 +52,7 @@ extract_all_issues() {
 
         # If matches are found for the current pattern
         if [[ -n "$matches" ]]; then
-            echo "Matched for pattern: $pattern"
+            echo "Matched for pattern: $pattern" >&2 # Redirect diagnostic output to stderr
             # Read each match into the 'match' variable
             while IFS= read -r match; do
                 # Extract the issue number (sequence of digits) from the matched string
@@ -67,12 +68,12 @@ extract_all_issues() {
                 # If a valid issue number was extracted, add it to the list
                 if [[ -n "$current_issue_num" ]]; then
                     found_issues+=("$current_issue_num,$current_repo")
-                    echo "Extracted issue: $current_issue_num from repo: $current_repo"
+                    echo "Extracted issue: $current_issue_num from repo: $current_repo" >&2 # Redirect diagnostic output to stderr
                 fi
             done <<< "$matches" # Use a here-string to feed matches into the while loop
         fi
     done
-    # Print unique issue-repo pairs, sorted, to avoid duplicate validations
+    # Print unique issue-repo pairs, sorted, to standard output for readarray
     printf "%s\n" "${found_issues[@]}" | sort -u
 }
 
@@ -97,6 +98,7 @@ failed_issue_links=""
 # Loop through each unique issue-repo pair found
 for issue_repo_pair in "${all_issues[@]}"; do
     # Split the pair into issue_num and repo using comma as delimiter
+    # Removed 'local' keyword as these variables are not within a function scope
     IFS=',' read -r issue_num repo <<< "$issue_repo_pair"
 
     echo "Validating issue number: #$issue_num in repo: $repo"
@@ -105,9 +107,10 @@ for issue_repo_pair in "${all_issues[@]}"; do
     issue_api_url="https://api.github.com/repos/$repo/issues/$issue_num"
     echo "API URL: $issue_api_url"
 
-    local response=""
-    local response_code=""
-    local response_body=""
+    # Removed 'local' keyword for these variable declarations
+    response=""
+    response_code=""
+    response_body=""
 
     # Determine if the repository is public or private to apply authentication
     if [[ "$repo" == "devtron-labs/devtron" || "$repo" == "devtron-labs/devtron-services" || "$repo" == "devtron-labs/dashboard" ]]; then
@@ -127,7 +130,8 @@ for issue_repo_pair in "${all_issues[@]}"; do
 
     echo "Response Code: $response_code"
     # Extract the 'html_url' from the JSON response body using jq
-    local html_url=$(echo "$response_body" | jq -r '.html_url')
+    # Removed 'local' keyword for this variable declaration
+    html_url=$(echo "$response_body" | jq -r '.html_url')
 
     # Check if the extracted URL points to a pull request instead of an issue
     if [[ "$html_url" == *"pull"* ]]; then
