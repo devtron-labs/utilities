@@ -1,9 +1,11 @@
 #!/bin/bash
 
+# Print base and head repository information
 echo "base or target repo : $BASE_REPO"
 echo "head or source repo : $HEAD_REPO"
 
-if [[ $HEAD_REPO  == $BASE_REPO ]]; then
+# Determine if the PR is from a forked repository
+if [[ $HEAD_REPO == $BASE_REPO ]]; then
     export forked=false
 else
     export forked=true
@@ -14,6 +16,7 @@ if [[ "$TITLE" =~ ^(doc:|docs:|chore:|misc:|Release:|release:|Sync:|sync:) ]]; t
     echo "Skipping validation for docs/chore PR."
     echo "PR NUMBER-: $PRNUM "
     if [[ "$forked" == "false" ]]; then
+        # If not a forked PR, remove 'Issue-verification-failed' and add 'Ready-to-Review' label
         gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
         gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
     fi
@@ -21,105 +24,162 @@ if [[ "$TITLE" =~ ^(doc:|docs:|chore:|misc:|Release:|release:|Sync:|sync:) ]]; t
 fi
 
 # Define all issue matching patterns
+# These patterns cover various ways issues can be linked in a PR body
 patterns=(
-    "((Fixes|fixes|Resolves|resolves) #[0-9]+)"
-    "((Fixes|fixes|Resolves|resolves) https://github.com/devtron-labs/(devtron|sprint-tasks|devops-sprint|devtron-enterprise)/issues/[0-9]+)"
-    "((Fixes|fixes|Resolves|resolves):? https://github.com/devtron-labs/(devtron|sprint-tasks|devops-sprint|devtron-enterprise)/issues/[0-9]+)"
-    "((Fixes|fixes|Resolves|resolves) devtron-labs/devtron#[0-9]+)"
+    "((Fixes|fixes|Resolves|resolves) #[0-9]+)" # e.g., Fixes #123
+    "((Fixes|fixes|Resolves|resolves) https://github.com/devtron-labs/(devtron|sprint-tasks|devops-sprint|devtron-enterprise)/issues/[0-9]+)" # e.g., Fixes https://github.com/devtron-labs/devtron/issues/123
+    "((Fixes|fixes|Resolves|resolves):? https://github.com/devtron-labs/(devtron|sprint-tasks|devops-sprint|devtron-enterprise)/issues/[0-9]+)" # e.g., Fixes: https://github.com/devtron-labs/devtron/issues/123
+    "((Fixes|fixes|Resolves|resolves) devtron-labs/devtron#[0-9]+)" # e.g., Fixes devtron-labs/devtron#123
     "((Fixes|fixes|Resolves|resolves) devtron-labs/sprint-tasks#[0-9]+)"
     "((Fixes|fixes|Resolves|resolves) devtron-labs/devops-sprint#[0-9]+)"
-    "(Fixes|fixes|Resolves|resolves):?\\s+\\[#([0-9]+)\\]"
-    "((Fixes|fixes|Resolves|resolves):? #devtron-labs/devops-sprint/issues/[0-9]+)"
+    "(Fixes|fixes|Resolves|resolves):?\\s+\\[#([0-9]+)\\]" # e.g., Fixes [#123]
+    "((Fixes|fixes|Resolves|resolves):? #devtron-labs/devops-sprint/issues/[0-9]+)" # e.g., Fixes: #devtron-labs/devops-sprint/issues/123
     "((Fixes|fixes|Resolves|resolves):? #devtron-labs/sprint-tasks/issues/[0-9]+)"
 )
 
-# Extract issue number and repo from PR body
-extract_issue_number() {
-    local pattern="$1"  # Get the pattern as the first argument to the function
+# Function to extract all unique issue numbers and their corresponding repositories from PR_BODY
+# It iterates through defined patterns and extracts all matches.
+# Returns a list of "issue_num,repo" pairs, one per line, to standard output.
+# All diagnostic messages are redirected to stderr to prevent interference with readarray.
+extract_all_issues() {
+    # Removed 'local' keyword for array declaration
+    found_issues=()
+    # Removed 'local' keyword for variable declaration
+    default_repo="devtron-labs/devtron" # Default repository if not explicitly mentioned in the link
 
-    # Check if PR_BODY matches the provided pattern using Bash's =~ regex operator
-    if [[ "$PR_BODY" =~ $pattern ]]; then
-        echo "matched for this pattern $pattern"
+    # Loop through each defined pattern
+    for pattern in "${patterns[@]}"; do
+        # Use grep -oE to find all non-overlapping matches for the current pattern in PR_BODY
+        matches=$(echo "$PR_BODY" | grep -oE "$pattern")
 
-        issue_num=$(echo "$PR_BODY" | grep -oE "$pattern" | grep -oE "[0-9]+")
+        # If matches are found for the current pattern
+        if [[ -n "$matches" ]]; then
+            # IMPORTANT: Redirect all diagnostic echo statements to stderr (>&2)
+            echo "Matched for pattern: $pattern" >&2
+            # Read each match into the 'match' variable
+            while IFS= read -r match; do
+                # Extract the issue number (sequence of digits) from the matched string
+                # Removed 'local' keyword for variable declaration
+                current_issue_num=$(echo "$match" | grep -oE "[0-9]+")
+                # Extract the repository name (e.g., devtron-labs/devtron) from the matched string
+                # Removed 'local' keyword for variable declaration
+                current_repo=$(echo "$match" | grep -oE "devtron-labs/[a-zA-Z0-9_-]+")
 
-        # Extract the repository name (e.g., devtron-labs/devtron) from PR_BODY using grep
-        repo=$(echo "$PR_BODY" | grep -oE "devtron-labs/[a-zA-Z0-9_-]+")
-        echo "Extracted issue number: $issue_num from repo: $repo"
+                # If no specific repository is found in the link, use the default
+                if [[ -z "$current_repo" ]]; then
+                    current_repo="$default_repo"
+                fi
 
-        return 0  # Return success
-    else
-        echo "No match for the pattern $pattern"
-    fi
-    return 1  # Return failure if no match
+                # If a valid issue number was extracted, add it to the list
+                if [[ -n "$current_issue_num" ]]; then
+                    found_issues+=("$current_issue_num,$current_repo")
+                    # IMPORTANT: Redirect all diagnostic echo statements to stderr (>&2)
+                    echo "Extracted issue: $current_issue_num from repo: $current_repo" >&2
+                fi
+            done <<< "$matches" # Use a here-string to feed matches into the while loop
+        fi
+    done
+    # Print unique issue-repo pairs, sorted, to standard output for readarray
+    printf "%s\n" "${found_issues[@]}" | sort -u
 }
 
-issue_num=""
-repo="devtron-labs/devtron"  # Default repo
-for pattern in "${patterns[@]}"; do
-    echo "Now checking for $pattern"
-    extract_issue_number "$pattern" && break
+# Call the function to extract all unique issue-repo pairs and store them in an array
+readarray -t all_issues < <(extract_all_issues)
+
+# Check if any issues were found in the PR body
+if [[ ${#all_issues[@]} -eq 0 ]]; then
+    echo "No valid issue number found in PR body."
+    if [[ "$forked" == "false" ]]; then
+        # If not a forked PR, add 'Issue-verification-failed' and remove 'Ready-to-Review' label
+        gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
+        gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
+    fi
+    exit 1
+fi
+
+# Initialize a flag to track overall validation status and a string to collect failed links
+all_issues_valid=true
+failed_issue_links=""
+
+# Loop through each unique issue-repo pair found
+for issue_repo_pair in "${all_issues[@]}"; do
+    # Split the pair into issue_num and repo using comma as delimiter
+    # Variables are now global, no 'local' needed here
+    IFS=',' read -r issue_num repo <<< "$issue_repo_pair"
+
+    echo "Validating issue number: #$issue_num in repo: $repo"
+
+    # Form the GitHub API URL for the issue
+    issue_api_url="https://api.github.com/repos/$repo/issues/$issue_num"
+    echo "API URL: $issue_api_url"
+
+    # Variables are now global, no 'local' needed here
+    response=""
+    response_code=""
+    response_body=""
+
+    # Determine if the repository is public or private to apply authentication
+    if [[ "$repo" == "devtron-labs/devtron" || "$repo" == "devtron-labs/devtron-services" || "$repo" == "devtron-labs/dashboard" ]]; then
+        echo "No extra arguments needed: public repository detected."
+        # Use curl to get the response body and HTTP status code
+        response=$(curl -s -w "%{http_code}" "$issue_api_url")
+    else
+        echo "Adding extra arguments for authentication: private repository detected."
+        # Use curl with authentication headers for private repositories
+        response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer $GH_PR_VALIDATOR_TOKEN" \
+            --header "Accept: application/vnd.github+json" "$issue_api_url")
+    fi
+
+    # Extract HTTP status code (last line of curl output) and response body
+    response_code=$(echo "$response" | tail -n 1)
+    response_body=$(echo "$response" | head -n -1)
+
+    echo "Response Code: $response_code"
+    # Extract the 'html_url' from the JSON response body using jq
+    # Variable is now global, no 'local' needed here
+    html_url=$(echo "$response_body" | jq -r '.html_url')
+
+    # Check if the extracted URL points to a pull request instead of an issue
+    if [[ "$html_url" == *"pull"* ]]; then
+        echo "The issue URL contains a pull-request link, marking as invalid."
+        # Append error message to the failed_issue_links string
+        failed_issue_links+="Issue #$issue_num in $repo is linked to a pull request URL, which is invalid.\n"
+        all_issues_valid=false # Set overall status to invalid
+    elif [[ "$response_code" -eq 200 ]]; then
+        # If HTTP status code is 200, the issue is valid
+        echo "Issue Number: #$issue_num is valid and exists in Repo: $repo."
+    else
+        # If issue not found or invalid HTTP status code
+        echo "Issue not found. Invalid URL or issue number: #$issue_num in $repo."
+        failed_issue_links+="Issue #$issue_num in $repo is not found or invalid (HTTP $response_code).\n"
+        all_issues_valid=false # Set overall status to invalid
+    fi
 done
 
-if [[ -z "$issue_num" ]]; then
-    echo "No valid issue number found."
-    if [[ "$forked" == "false" ]]; then
-        gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
-        gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
-    fi
-    exit 1
-fi
-
-# Form the issue API URL dynamically
-issue_api_url="https://api.github.com/repos/$repo/issues/$issue_num"
-echo "API URL: $issue_api_url"
-
-if [[ $repo == "devtron-labs/devtron" || $repo == "devtron-labs/devtron-services" || $repo == "devtron-labs/dashboard" ]]; then
-    echo "No extra arguments needed: public repository detected."
-    response=$(curl -s -w "%{http_code}" "$issue_api_url")  # Get the response body and status code in one go
-else
-    echo "Adding extra arguments for authentication: private repository detected."
-    response=$(curl -s -w "%{http_code}" --header "Authorization: Bearer $GH_PR_VALIDATOR_TOKEN" \
-        --header "Accept: application/vnd.github+json" "$issue_api_url")
-fi
-
-# Extract HTTP status code from the response
-response_code=$(echo "$response" | tail -n 1)  # Status code is the last line
-response_body=$(echo "$response" | head -n -1)  # The body is everything except the last line (status code)
-
-echo "Response Code: $response_code"
-html_url=$(echo "$response_body" | jq -r '.html_url')  # Extract html_url from the JSON response
-
-# Check if the html_url contains "pull-request"
-if [[ "$html_url" == *"pull"* ]]; then
-    echo "The issue URL contains a pull-request link, marking as invalid."
-    gh pr comment $PRNUM --body "PR is linked to a pull request URL, which is invalid. Please update the issue link."
-
-    if [[ "$forked" == "false" ]]; then
-        # Apply 'Issue-verification-failed' label and remove 'Ready-to-Review' label.
-        gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
-        gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
-    fi
-    exit 1
-fi
-
-# If response_code is 200, proceed with validating the issue
-if [[ "$response_code" -eq 200 ]]; then
-    echo "Issue Number: #$issue_num is valid and exists in Repo: $repo."
-    if [[ "$forked" == "false" ]]; then
+# Final label application and comments based on the overall validation status
+if [[ "$forked" == "false" ]]; then
+    # If not a forked PR, modify labels and add comments
+    if [[ "$all_issues_valid" == "true" ]]; then
+        # All issues are valid, remove 'Issue-verification-failed' and add 'Ready-to-Review'
         gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
         gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
-    fi
-    echo "PR:Ready-to-Review, exiting gracefully"
-    exit 0
-else
-    echo "Issue not found. Invalid URL or issue number."
-    gh pr comment $PRNUM --body "PR is not linked to a valid issue. Please update the issue link."
-
-    if [[ "$forked" == "false" ]]; then
-        # Apply 'Issue-verification-failed' label and remove 'Ready-to-Review' label.
+        echo "All linked issues are valid. PR:Ready-to-Review."
+        exit 0
+    else
+        # Some issues are invalid, add a comment with details and update labels
+        gh pr comment $PRNUM --body "Some linked issues are invalid. Please update the issue links:\n$failed_issue_links"
         gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
         gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
+        echo "Some linked issues are invalid. PR:Issue-verification-failed."
+        exit 1
     fi
-    exit 1
+else
+    # For forked PRs, just output the status, do not modify labels
+    if [[ "$all_issues_valid" == "true" ]]; then
+        echo "All linked issues are valid for forked PR."
+        exit 0
+    else
+        echo "Some linked issues are invalid for forked PR:\n$failed_issue_links"
+        exit 1
+    fi
 fi
