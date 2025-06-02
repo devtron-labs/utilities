@@ -42,8 +42,10 @@ patterns=(
 # Returns a list of "issue_num,repo" pairs, one per line, to standard output.
 # All diagnostic messages are redirected to stderr to prevent interference with readarray.
 extract_all_issues() {
-    local -a found_issues=()
-    local default_repo="devtron-labs/devtron" # Default repository if not explicitly mentioned in the link
+    # Removed 'local' keyword for array declaration
+    found_issues=()
+    # Removed 'local' keyword for variable declaration
+    default_repo="devtron-labs/devtron" # Default repository if not explicitly mentioned in the link
 
     # Loop through each defined pattern
     for pattern in "${patterns[@]}"; do
@@ -52,13 +54,16 @@ extract_all_issues() {
 
         # If matches are found for the current pattern
         if [[ -n "$matches" ]]; then
-            echo "Matched for pattern: $pattern" >&2 # Redirect diagnostic output to stderr
+            # IMPORTANT: Redirect all diagnostic echo statements to stderr (>&2)
+            echo "Matched for pattern: $pattern" >&2
             # Read each match into the 'match' variable
             while IFS= read -r match; do
                 # Extract the issue number (sequence of digits) from the matched string
-                local current_issue_num=$(echo "$match" | grep -oE "[0-9]+")
+                # Removed 'local' keyword for variable declaration
+                current_issue_num=$(echo "$match" | grep -oE "[0-9]+")
                 # Extract the repository name (e.g., devtron-labs/devtron) from the matched string
-                local current_repo=$(echo "$match" | grep -oE "devtron-labs/[a-zA-Z0-9_-]+")
+                # Removed 'local' keyword for variable declaration
+                current_repo=$(echo "$match" | grep -oE "devtron-labs/[a-zA-Z0-9_-]+")
 
                 # If no specific repository is found in the link, use the default
                 if [[ -z "$current_repo" ]]; then
@@ -68,7 +73,8 @@ extract_all_issues() {
                 # If a valid issue number was extracted, add it to the list
                 if [[ -n "$current_issue_num" ]]; then
                     found_issues+=("$current_issue_num,$current_repo")
-                    echo "Extracted issue: $current_issue_num from repo: $current_repo" >&2 # Redirect diagnostic output to stderr
+                    # IMPORTANT: Redirect all diagnostic echo statements to stderr (>&2)
+                    echo "Extracted issue: $current_issue_num from repo: $current_repo" >&2
                 fi
             done <<< "$matches" # Use a here-string to feed matches into the while loop
         fi
@@ -98,7 +104,7 @@ failed_issue_links=""
 # Loop through each unique issue-repo pair found
 for issue_repo_pair in "${all_issues[@]}"; do
     # Split the pair into issue_num and repo using comma as delimiter
-    # Removed 'local' keyword as these variables are not within a function scope
+    # Variables are now global, no 'local' needed here
     IFS=',' read -r issue_num repo <<< "$issue_repo_pair"
 
     echo "Validating issue number: #$issue_num in repo: $repo"
@@ -107,7 +113,7 @@ for issue_repo_pair in "${all_issues[@]}"; do
     issue_api_url="https://api.github.com/repos/$repo/issues/$issue_num"
     echo "API URL: $issue_api_url"
 
-    # Removed 'local' keyword for these variable declarations
+    # Variables are now global, no 'local' needed here
     response=""
     response_code=""
     response_body=""
@@ -130,7 +136,7 @@ for issue_repo_pair in "${all_issues[@]}"; do
 
     echo "Response Code: $response_code"
     # Extract the 'html_url' from the JSON response body using jq
-    # Removed 'local' keyword for this variable declaration
+    # Variable is now global, no 'local' needed here
     html_url=$(echo "$response_body" | jq -r '.html_url')
 
     # Check if the extracted URL points to a pull request instead of an issue
