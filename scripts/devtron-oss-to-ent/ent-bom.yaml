@@ -10,7 +10,7 @@ components:
         FEATURE_IMAGE_PROMOTION_ENABLE: "true"
         FEATURE_CLUSTER_MAP_ENABLE: "true"
         FEATURE_CONFIG_DRIFT_ENABLE: "true"
-    image: "dashboard:aea41e41-50bc3dc1-6-31161"
+    image: "dashboard:5e962cf5-2bc5a68b-6-33814"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   # Values for devtron
@@ -18,7 +18,7 @@ components:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     image: "hyperion:cad08220-777-26242"
-    cicdImage: "devtron:8c4675e4-4-31178"
+    cicdImage: "devtron:e8655ae7-4-33813"
     imagePullPolicy: IfNotPresent
     customOverrides:
       USE_CUSTOM_HTTP_TRANSPORT: "true"
@@ -33,30 +33,30 @@ components:
       STACK_VERSION: "31"
   # Values for ciRunner
   ciRunner:
-    image: "ci-runner:2c6a094c-882-30828"
+    image: "ci-runner:0d197498-515-33592"
   # Values for kubelink
   kubelink:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "kubelink:2c6a094c-310-30829"
+    image: "kubelink:48c3bdb7-310-33574"
     imagePullPolicy: IfNotPresent
   # Values for gitsensor
   gitsensor:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
-    image: "git-sensor:f4de0354-535-30999"
+    image: "git-sensor:6c4c3f1d-535-33195"
     imagePullPolicy: IfNotPresent
   migrator:
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
   chartSync:
-    image: chart-sync:289d080a-341-30392
+    image: chart-sync:48c3bdb7-341-33568
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
 # values for security integration
 security:
   imageScanner:
-    image: "image-scanner:2c6a094c-112-30817"
+    image: "image-scanner:6c4c3f1d-112-33192"
     configs:
       TRIVY_DB_REPOSITORY: mirror.gcr.io/aquasec/trivy-db
       TRIVY_JAVA_DB_REPOSITORY: mirror.gcr.io/aquasec/trivy-java-db
@@ -65,13 +65,13 @@ security:
 devtronEnterprise:
   enabled: true
   casbin:
-    image: "casbin:f6ff5f74-064b67e5-462-30822"
+    image: "casbin:48c3bdb7-61865e96-462-33572"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
   scoop:
     enabled: false
-    image: "scoop:2c6a094c-629-30827"
+    image: "scoop:48c3bdb7-629-33578"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
