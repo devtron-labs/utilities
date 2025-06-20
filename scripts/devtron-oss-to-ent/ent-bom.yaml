@@ -71,7 +71,7 @@ devtronEnterprise:
     imagePullPolicy: IfNotPresent
   scoop:
     enabled: false
-    image: "scoop:48c3bdb7-629-33578"
+    image: "scoop:8299423e-629-34072"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
