@@ -65,7 +65,7 @@ security:
 devtronEnterprise:
   enabled: true
   casbin:
-    image: "casbin:48c3bdb7-61865e96-462-33572"
+    image: "casbin:8299423e-64c615d7-462-34050"
     imagePullSecrets:
       - name: devtron-image-pull-enterprise
     imagePullPolicy: IfNotPresent
