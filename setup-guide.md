@@ -1,4 +1,3 @@
-
 # Devtron Cluster Setup Guide
 
 This guide provides a standardized approach for provisioning a **dedicated Kubernetes cluster for Devtron**, following best practices for reliability, security, and cost-efficiency. Devtron should be deployed in an **isolated cluster**, separate from production workloads, to maintain a clean separation of responsibilities.
@@ -90,22 +89,25 @@ The following section applies **only when using Amazon EKS** as your Kubernetes 
 
 #### 1. IAM Policies for Node Groups
 
-Attach these **AWS-managed IAM policies**:
+Attach these **AWS-managed IAM policies** as required for your use case:
 
 ```yaml
 attachPolicyARNs:
   - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
   - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-  - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
   - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
   - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-  - arn:aws:iam::aws:policy/AmazonS3FullAccess
   - arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+  # Add the following based on your requirements:
+  # For full access (not recommended for production):
+  - arn:aws:iam::aws:policy/AmazonS3FullAccess
+  - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
   - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
-  - arn:aws:iam::<your-account-id>:policy/devtron-cluster-IAM-policy
+  # For least privilege, use custom policies as described in Option 5 below:
+  - arn:aws:iam::<your-account-id>:policy/devtron-cluster-IAM-policy 
 ```
 **Optional (Recommended for Least Privilege):**
-If you are following **Option 5 (Optional: Custom IAM Policy for devtron-cluster-IAM-policy)**, the `devtron-cluster-IAM-policy` should be used in place of full admin-level S3, ECR, and ELB policies. This improves security posture by granting only the necessary permissions.
+If you are following **[Option 5 (Optional: Custom IAM Policy for devtron-cluster-IAM-policy)](#5-optional-custom-iam-policy-for-devtron-cluster-iam-policy)**, you can attach only the required custom policies (S3, ECR, ELB) instead of full admin-level policies. This improves security posture by granting only the necessary permissions. See [Option 5 details below](#5-optional-custom-iam-policy-for-devtron-cluster-iam-policy) for how to create and use these policies.
 
 #### 2. EBS CSI Driver
 
@@ -126,15 +128,16 @@ Recommended for reducing NAT Gateway costs:
 
 #### 5. Optional: Custom IAM Policy for devtron-cluster-IAM-policy 
 
-Create a consolidated IAM policy (`devtron-cluster-IAM-policy`) to grant Devtron access to necessary AWS services:
+You can create separate IAM policies for S3, ECR, and ELB access, and attach only what is needed for your use case. Below are example policies for each:
 
+**a) S3 Access Only**
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["s3:*"],
+      "Action": ["s3:*"] ,
       "Resource": [
         "arn:aws:s3:::<your-logs-bucket>",
         "arn:aws:s3:::<your-logs-bucket>/*",
@@ -143,26 +146,41 @@ Create a consolidated IAM policy (`devtron-cluster-IAM-policy`) to grant Devtron
         "arn:aws:s3:::<your-backup-bucket>",
         "arn:aws:s3:::<your-backup-bucket>/*"
       ]
-    },
+    }
+  ]
+}
+```
+
+**b) ECR Access Only**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["ecr:*"],
+      "Action": ["ecr:*"] ,
       "Resource": "arn:aws:ecr:<region>:<account-id>:repository/<your-ecr-repo>"
-    },
+    }
+  ]
+}
+```
+
+**c) ELB Access Only**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["elasticloadbalancing:*"],
+      "Action": ["elasticloadbalancing:*"] ,
       "Resource": "*"
     }
   ]
 }
 ```
 
-> Replace `<your-bucket-name>`, `<region>`, `<account-id>`, and `<your-ecr-repo>` with actual values from your AWS environment.
+> Replace placeholders (`<your-bucket-name>`, `<region>`, `<account-id>`, `<your-ecr-repo>`) with your actual AWS values.
 
----
+You can combine these policies as needed, or keep them separate for more granular control.
+```
 
-
-## Support
-
-For onboarding assistance, cluster validation, or enterprise SLAs, please contact the Devtron team via your assigned solutions engineers. 
