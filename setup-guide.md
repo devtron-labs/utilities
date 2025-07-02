@@ -35,20 +35,21 @@ taints:
 
 ###  3. Object Storage Buckets
 
-Create **three buckets** in your cloud provider’s object storage (e.g., S3, GCS, Azure Blob):
+Create **four buckets** in your cloud provider’s object storage (e.g., S3, GCS, Azure Blob):
 
 * For CI logs (devtron-ci-logs)
 * For CI cache artifacts (devtron-ci-cache)
 * For backups (devtron-backup)
+* For Devtron microservice logs (devtron-microservice-logs) *(optional, for audit or logging of Devtron microservices)*
 
 Ensure node groups have access to:
 
 * Read/write to the designated buckets (get/put/list permissions).
-#### CI Cache and backups Retention (Recommended):
+#### CI Cache, Backups, and Microservice Logs Retention (Recommended):
 
-* Configure **lifecycle rules** or **retention policies** on the CI cache bucket and backups to:
+* Configure **lifecycle rules** or **retention policies** on the CI cache bucket, backups, and Devtron microservice logs bucket to:
 
-  * Automatically **expire old object** (e.g., after 7–30 days)
+  * Automatically **expire old objects** (e.g., after 7–30 days for cache, 3–6 months or up to 12 months for audit/logging of Devtron microservices, depending on your audit requirements)
   * Optimize storage cost
 
 
@@ -144,7 +145,9 @@ You can create separate IAM policies for S3, ECR, and ELB access, and attach onl
         "arn:aws:s3:::<your-ci-cache-bucket>",
         "arn:aws:s3:::<your-ci-cache-bucket>/*",
         "arn:aws:s3:::<your-backup-bucket>",
-        "arn:aws:s3:::<your-backup-bucket>/*"
+        "arn:aws:s3:::<your-backup-bucket>/*",
+        "arn:aws:s3:::<your-microservice-logs-bucket>",
+        "arn:aws:s3:::<your-microservice-logs-bucket>/*"
       ]
     }
   ]
