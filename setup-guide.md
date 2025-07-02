@@ -94,15 +94,18 @@ Attach these **AWS-managed IAM policies**:
 
 ```yaml
 attachPolicyARNs:
-    - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-    - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
-    - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-    - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-    - arn:aws:iam::aws:policy/AmazonS3FullAccess
-    - arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
-    - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+  - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+  - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+  - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+  - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+  - arn:aws:iam::aws:policy/AmazonS3FullAccess
+  - arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+  - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+  - arn:aws:iam::<your-account-id>:policy/devtron-cluster-IAM-policy
 ```
+**Optional (Recommended for Least Privilege):**
+If you are following **Option 5 (Optional: Custom IAM Policy for devtron-cluster-IAM-policy)**, the `devtron-cluster-IAM-policy` should be used in place of full admin-level S3, ECR, and ELB policies. This improves security posture by granting only the necessary permissions.
 
 #### 2. EBS CSI Driver
 
@@ -158,4 +161,4 @@ Create a consolidated IAM policy (`devtron-cluster-IAM-policy`) to grant Devtron
 
 ## Support
 
-For onboarding assistance, cluster validation, or enterprise SLAs, please contact the Devtron team via your assigned solutions engineer or through [support@devtron.ai](mailto:support@devtron.ai).
+For onboarding assistance, cluster validation, or enterprise SLAs, please contact the Devtron team via your assigned solutions engineers. 
