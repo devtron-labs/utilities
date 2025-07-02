@@ -136,8 +136,12 @@ Create a consolidated IAM policy (`devtron-cluster-IAM-policy`) to grant Devtron
       "Effect": "Allow",
       "Action": ["s3:*"],
       "Resource": [
-        "arn:aws:s3:::<your-bucket-name>",
-        "arn:aws:s3:::<your-bucket-name>/*"
+        "arn:aws:s3:::<your-logs-bucket>",
+        "arn:aws:s3:::<your-logs-bucket>/*",
+        "arn:aws:s3:::<your-ci-cache-bucket>",
+        "arn:aws:s3:::<your-ci-cache-bucket>/*",
+        "arn:aws:s3:::<your-backup-bucket>",
+        "arn:aws:s3:::<your-backup-bucket>/*"
       ]
     },
     {
