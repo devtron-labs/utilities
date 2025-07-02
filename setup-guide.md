@@ -73,10 +73,10 @@ To reduce cost and enhance network performance:
 
 ## Access for Devtron Team (If Using Managed Deployment)
 
-If Devtron is managing the cluster setup and lifecycle:
+If Devtron Team is managing the cluster setup and lifecycle:
 
-* Provide a **Kubernetes `cd-user` service account** with required RBAC. checke the doc [here](https://github.com/devtron-labs/utilities/tree/main/kubeconfig-exporter#script-to-generate-cluster-admin-tokens)
-* Share a **cluster-admin level token** or access credentials securely.
+* Provide a **Kubernetes `cd-user` service account** with the required RBAC permissions for Devtron installation and management. For step-by-step instructions on generating a secure cluster-admin token and exporting kubeconfig for this service account, refer to the [kubeconfig-exporter documentation](https://github.com/devtron-labs/utilities/tree/main/kubeconfig-exporter#script-to-generate-cluster-admin-tokens).
+* Share a **cluster-admin level token** or access credentials securely using [https://enclosed.devtron.ai/](https://enclosed.devtron.ai/).
 * Devtron Team will manage installation, upgrades, monitoring, and integrations.
 
 ---
@@ -185,4 +185,4 @@ You can combine these policies as needed, or keep them separate for more granula
 
 ---
 ## Support
-For onboarding assistance, cluster validation, or enterprise SLAs, please contact the Devtron team via your assigned solutions engineers. 
+For onboarding assistance, cluster validation, or enterprise SLAs, please contact the Devtron team via your assigned solutions engineers.
