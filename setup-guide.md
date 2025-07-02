@@ -10,7 +10,7 @@ Before provisioning the cluster, ensure the following general infrastructure req
 
 ### 1. Isolated Kubernetes Cluster
 - Devtron must run in its own Kubernetes cluster (not shared with app workloads).
-- Supports any CNCF-compliant cluster: EKS, GKE, AKS, self-hosted, etc.
+- Supports any cluster: EKS, GKE, AKS, self-hosted, etc.
 
 ### 2. Node Group Configuration
 Provision **two separate node groups**:
