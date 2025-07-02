@@ -182,5 +182,7 @@ You can create separate IAM policies for S3, ECR, and ELB access, and attach onl
 > Replace placeholders (`<your-bucket-name>`, `<region>`, `<account-id>`, `<your-ecr-repo>`) with your actual AWS values.
 
 You can combine these policies as needed, or keep them separate for more granular control.
-```
 
+---
+## Support
+For onboarding assistance, cluster validation, or enterprise SLAs, please contact the Devtron team via your assigned solutions engineers. 
