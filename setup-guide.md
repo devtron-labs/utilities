@@ -25,9 +25,17 @@ Provision **two separate node groups**:
 
 #### a. `devtron-workloads` (On-Demand Instances)
 - Runs Devtron's core services and Devtron-related workloads.
+- **Recommended instance type:** 8 vCPU (non-burstable, e.g., m5.2xlarge, c5.2xlarge)
+- **Node group size:** min 2, max 4 nodes
+- **Node volume size:** 100 GB per node
 
 #### b. `ci-workloads` (Spot or Preemptible Instances)
 - Runs CI pipeline workloads to reduce infrastructure cost.
+- **Recommended instance type:** 4 vCPU (non-burstable, e.g., m5.xlarge, c5.xlarge)
+- **Node group size:** min 0, max 10 nodes
+- **Node volume size:** 100 GB per node
+
+> Avoid using burstable instance types (e.g., t3, t4g) for both node groups to ensure consistent performance.
 
 Apply the following labels and taints to the CI node group:
 
