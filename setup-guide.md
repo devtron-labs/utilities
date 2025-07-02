@@ -45,6 +45,13 @@ Create **three buckets** in your cloud provider’s object storage (e.g., S3, GC
 Ensure node groups have access to:
 
 * Read/write to the designated buckets (get/put/list permissions).
+#### CI Cache and backups Retention (Recommended):
+
+* Configure **lifecycle rules** or **retention policies** on the CI cache bucket and backups to:
+
+  * Automatically **expire old object** (e.g., after 7–30 days)
+  * Optimize storage cost
+
 
 ### 4. Persistent Storage & CSI Drivers
 
