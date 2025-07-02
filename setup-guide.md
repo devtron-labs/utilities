@@ -16,7 +16,7 @@ Before provisioning the cluster, ensure the following general infrastructure req
 Provision **two separate node groups**:
 
 #### a. `devtron-workloads` (On-Demand Instances)
-- Runs Devtron's core services and application workloads.
+- Runs Devtron's core services and Devtron-related workloads.
 
 #### b. `ci-workloads` (Spot or Preemptible Instances)
 - Runs CI pipeline workloads to reduce infrastructure cost.
