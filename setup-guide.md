@@ -4,13 +4,21 @@ This guide provides a standardized approach for provisioning a **dedicated Kuber
 
 ---
 
+## Table of Contents
+- [Prerequisites (Applicable to All Cloud Providers)](#prerequisites-applicable-to-all-cloud-providers)
+- [Access for Devtron Team (If Using Managed Deployment)](#access-for-devtron-team-if-using-managed-deployment)
+- [Cloud-Specific Configuration: AWS (EKS)](#cloud-specific-configuration-aws-eks)
+- [Support](#support)
+
+---
+
 ## Prerequisites (Applicable to All Cloud Providers)
 
 Before provisioning the cluster, ensure the following general infrastructure requirements are met:
 
 ### 1. Isolated Kubernetes Cluster
 - Devtron must run in its own Kubernetes cluster (not shared with app workloads).
-- Supports any cluster: EKS, GKE, AKS, self-hosted, etc.
+- Supports any CNCF-compliant cluster: EKS, GKE, AKS, self-hosted, etc.
 
 ### 2. Node Group Configuration
 Provision **two separate node groups**:
@@ -31,25 +39,27 @@ taints:
   - key: dedicated
     value: ci
     effect: NoSchedule
-``` 
+```
+
+> Note: These labels and taints typically will be used after the Devtron setup. For more details, refer to the [Devtron Build Infra documentation](https://docs.devtron.ai/global-configurations/build-infra).
 
 ###  3. Object Storage Buckets
 
-Create **four buckets** in your cloud provider’s object storage (e.g., S3, GCS, Azure Blob):
-
-* For CI logs (devtron-ci-logs)
-* For CI cache artifacts (devtron-ci-cache)
-* For backups (devtron-backup)
-* For Devtron microservice logs (devtron-microservice-logs) *(optional, for audit or logging of Devtron microservices)*
+| Bucket Name                  | Purpose                                 | Retention Recommendation           | Required/Optional |
+|------------------------------|-----------------------------------------|------------------------------------|-------------------|
+| devtron-ci-logs              | CI logs                                 | -                           | -          |
+| devtron-ci-cache             | CI cache artifacts                      | 7–30 days                         | Required          |
+| devtron-backup               | Backups                                 | 10-30 days                        | Required          |
+| devtron-microservice-logs    | Devtron microservice logs (audit/logs)  | 3–12 months (per audit needs)      | Optional          |
 
 Ensure node groups have access to:
 
 * Read/write to the designated buckets (get/put/list permissions).
+
 #### CI Cache, Backups, and Microservice Logs Retention (Recommended):
 
 * Configure **lifecycle rules** or **retention policies** on the CI cache bucket, backups, and Devtron microservice logs bucket to:
-
-  * Automatically **expire old objects** (e.g., after 7–30 days for cache, 3–6 months or up to 12 months for audit/logging of Devtron microservices, depending on your audit requirements)
+  * Automatically **expire old objects** (see table above)
   * Optimize storage cost
 
 
