@@ -56,7 +56,7 @@ components:
 # values for security integration
 security:
   imageScanner:
-    image: "image-scanner:8299423e-112-34071"
+    image: "image-scanner:50ea62f1-112-34481"
     configs:
       TRIVY_DB_REPOSITORY: mirror.gcr.io/aquasec/trivy-db
       TRIVY_JAVA_DB_REPOSITORY: mirror.gcr.io/aquasec/trivy-java-db
