@@ -55,10 +55,10 @@ taints:
 
 | Bucket Name                  | Purpose                                 | Retention Recommendation           | Required/Optional |
 |------------------------------|-----------------------------------------|------------------------------------|-------------------|
-| devtron-ci-logs              | CI logs                                 | -                           | -          |
-| devtron-ci-cache             | CI cache artifacts                      | 7–30 days                         | Required          |
-| devtron-backup               | Backups                                 | 10-30 days                        | Required          |
-| devtron-microservice-logs    | Devtron microservice logs (audit/logs)  | 3–12 months (per audit needs)      | Optional          |
+| XXXX-devtron-ci-logs              | CI logs                                 | -                           | -          |
+| XXXX-devtron-ci-cache             | CI cache artifacts                      | 7–30 days                         | Required          |
+| XXXX-devtron-backup               | Backups                                 | 10-30 days                        | Required          |
+| XXXX-devtron-microservice-logs    | Devtron microservice logs (audit/logs)  | 3–12 months (per audit needs)      | Optional          |
 
 Ensure node groups have access to:
 
