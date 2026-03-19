@@ -1,0 +1,10 @@
+# Terraform cache
+.terraform/
+
+*.tfstate
+*.tfstate.*
+
+terraform.tfstate.d/
+
+
+
